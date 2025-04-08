@@ -1,0 +1,18 @@
+-- Drop existing tables in reverse order of dependencies
+DROP TABLE IF EXISTS message_attachments CASCADE;
+DROP TABLE IF EXISTS messages CASCADE;
+DROP TABLE IF EXISTS connections CASCADE;
+DROP TABLE IF EXISTS event_attendees CASCADE;
+DROP TABLE IF EXISTS event_topics CASCADE;
+DROP TABLE IF EXISTS event_skills CASCADE;
+DROP TABLE IF EXISTS events CASCADE;
+DROP TABLE IF EXISTS topics CASCADE;
+DROP TABLE IF EXISTS user_skills CASCADE;
+DROP TABLE IF EXISTS skills CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
+
+-- Drop existing types
+DROP TYPE IF EXISTS user_role CASCADE;
+DROP TYPE IF EXISTS event_format CASCADE;
+DROP TYPE IF EXISTS skill_level CASCADE;
+DROP TYPE IF EXISTS connection_status CASCADE; 

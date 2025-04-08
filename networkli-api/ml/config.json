@@ -1,0 +1,15 @@
+{
+    "model": {
+        "hidden_dim": 128,
+        "embedding_dim": 64,
+        "num_layers": 3,
+        "dropout": 0.2
+    },
+    "training": {
+        "learning_rate": 0.001,
+        "weight_decay": 1e-5,
+        "num_epochs": 100,
+        "batch_size": 32768,
+        "patience": 10
+    }
+} 

@@ -1,0 +1,31 @@
+{
+    "users": [
+        {
+            "id": "1",
+            "experience_years": 5,
+            "skills": ["Python", "Machine Learning", "Data Science"],
+            "interests": ["AI", "Deep Learning"],
+            "connection_count": 150,
+            "activity_score": 0.8,
+            "connections": ["2", "3"]
+        },
+        {
+            "id": "2",
+            "experience_years": 3,
+            "skills": ["JavaScript", "React", "Node.js"],
+            "interests": ["Web Development", "UI/UX"],
+            "connection_count": 100,
+            "activity_score": 0.7,
+            "connections": ["1"]
+        },
+        {
+            "id": "3",
+            "experience_years": 7,
+            "skills": ["Python", "Java", "Cloud Computing"],
+            "interests": ["DevOps", "System Design"],
+            "connection_count": 200,
+            "activity_score": 0.9,
+            "connections": ["1"]
+        }
+    ]
+} 
