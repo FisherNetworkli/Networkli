@@ -8,35 +8,11 @@ export default function CareersPage() {
   const openPositions = [
     {
       id: 1,
-      title: "Senior Full Stack Developer",
+      title: "Founding Engineer",
       department: "Engineering",
       location: "Remote",
       type: "Full-time",
       description: "Join our engineering team to build the future of professional networking."
-    },
-    {
-      id: 2,
-      title: "AI/ML Engineer",
-      department: "Engineering",
-      location: "Remote",
-      type: "Full-time",
-      description: "Help develop and improve our AI-powered matching algorithm."
-    },
-    {
-      id: 3,
-      title: "Product Designer",
-      department: "Design",
-      location: "Remote",
-      type: "Full-time",
-      description: "Create beautiful and intuitive experiences for our users."
-    },
-    {
-      id: 4,
-      title: "Marketing Manager",
-      department: "Marketing",
-      location: "Remote",
-      type: "Full-time",
-      description: "Lead our marketing efforts to grow our user base."
     }
   ]
 
