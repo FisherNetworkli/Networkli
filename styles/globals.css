@@ -21,7 +21,7 @@
   }
   
   body {
-    @apply text-[#3659A8] bg-white;
+    @apply text-connection-blue bg-white;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -39,7 +39,7 @@
   }
 
   .btn-secondary {
-    @apply inline-block bg-[#3659A8] text-white px-8 py-4 rounded-full text-lg font-medium hover:bg-[#3659A8]/90 transition-colors;
+    @apply inline-block bg-connection-blue text-white px-8 py-4 rounded-full text-lg font-medium hover:bg-connection-blue/90 transition-colors;
   }
 
   .logo-container {

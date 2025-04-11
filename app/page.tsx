@@ -53,7 +53,7 @@ export default function Home() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <h2 id="introvert-networking-heading" className="text-4xl md:text-5xl font-bold mb-6">
+              <h2 id="introvert-networking-heading" className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
                 Networking Made Comfortable
               </h2>
               <p className="text-xl text-gray-600 mb-8">
@@ -61,14 +61,14 @@ export default function Home() {
               </p>
               <Link 
                 href="/features/introvert-friendly" 
-                className="text-connection-blue text-lg font-medium hover:underline"
+                className="text-connection-blue text-lg font-medium hover:text-connection-blue-70 transition-colors"
                 aria-label="Learn more about our introvert-friendly approach"
               >
                 Learn more about our introvert-friendly approach →
               </Link>
             </motion.div>
             <motion.div 
-              className="bg-gray-100 rounded-2xl h-96 flex items-center justify-center"
+              className="bg-gray-50 rounded-2xl h-96 flex items-center justify-center"
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
@@ -87,7 +87,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <motion.div 
-              className="bg-gray-100 rounded-2xl h-96 flex items-center justify-center order-2 md:order-1"
+              className="bg-white rounded-2xl h-96 flex items-center justify-center order-2 md:order-1"
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
@@ -104,7 +104,7 @@ export default function Home() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <h2 id="smart-matching-heading" className="text-4xl md:text-5xl font-bold mb-6">
+              <h2 id="smart-matching-heading" className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
                 Smart Matching
               </h2>
               <p className="text-xl text-gray-600 mb-8">
@@ -112,7 +112,7 @@ export default function Home() {
               </p>
               <Link 
                 href="/features/smart-matching" 
-                className="text-connection-blue text-lg font-medium hover:underline"
+                className="text-connection-blue text-lg font-medium hover:text-connection-blue-70 transition-colors"
                 aria-label="Learn more about Smart Matching"
               >
                 Learn more about Smart Matching →
@@ -133,7 +133,7 @@ export default function Home() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <h2 id="privacy-heading" className="text-4xl md:text-5xl font-bold mb-6">
+              <h2 id="privacy-heading" className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
                 Privacy First
               </h2>
               <p className="text-xl text-gray-600 mb-8">
@@ -141,14 +141,14 @@ export default function Home() {
               </p>
               <Link 
                 href="/features/privacy" 
-                className="text-connection-blue text-lg font-medium hover:underline"
+                className="text-connection-blue text-lg font-medium hover:text-connection-blue-70 transition-colors"
                 aria-label="Learn more about our Privacy approach"
               >
                 Learn more about our Privacy approach →
               </Link>
             </motion.div>
             <motion.div 
-              className="bg-gray-100 rounded-2xl h-96 flex items-center justify-center"
+              className="bg-gray-50 rounded-2xl h-96 flex items-center justify-center"
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
@@ -167,7 +167,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <motion.div 
-              className="bg-gray-100 rounded-2xl h-96 flex items-center justify-center order-2 md:order-1"
+              className="bg-white rounded-2xl h-96 flex items-center justify-center order-2 md:order-1"
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
@@ -184,7 +184,7 @@ export default function Home() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <h2 id="meaningful-connections-heading" className="text-4xl md:text-5xl font-bold mb-6">
+              <h2 id="meaningful-connections-heading" className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
                 Meaningful Connections
               </h2>
               <p className="text-xl text-gray-600 mb-8">
@@ -192,7 +192,7 @@ export default function Home() {
               </p>
               <Link 
                 href="/features/meaningful-connections" 
-                className="text-connection-blue text-lg font-medium hover:underline"
+                className="text-connection-blue text-lg font-medium hover:text-connection-blue-70 transition-colors"
                 aria-label="Learn more about our approach to meaningful connections"
               >
                 Learn more about our approach to meaningful connections →
