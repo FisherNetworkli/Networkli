@@ -1,6 +1,64 @@
 # Networkli
 
-This project uses a local Supabase instance for development.
+Networkli is a professional networking platform designed specifically for introverts. Our AI-powered platform helps professionals make meaningful connections in a comfortable, authentic way.
+
+## Features
+
+- AI-powered matching algorithm
+- Custom conversation starters
+- Privacy controls
+- Event integration
+- Analytics dashboard
+- Enterprise API access
+
+## Tech Stack
+
+- Next.js 14
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+- Supabase
+
+## Getting Started
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/networkli.git
+cd networkli
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Create a `.env` file based on `.env.example`:
+```bash
+cp .env.example .env
+```
+
+4. Start the development server:
+```bash
+npm run dev
+```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Deployment
+
+The project is configured for deployment on Vercel. Simply connect your GitHub repository to Vercel and it will automatically deploy your changes.
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Local Development Setup
 

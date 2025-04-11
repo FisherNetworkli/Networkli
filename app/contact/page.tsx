@@ -1,0 +1,201 @@
+"use client"
+
+import React from 'react'
+import { motion } from 'framer-motion'
+
+export default function ContactPage() {
+  return (
+    <div className="bg-white">
+      {/* Hero Section */}
+      <section className="pt-24 pb-12 bg-connection-blue text-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center"
+          >
+            <h1 className="text-5xl md:text-6xl font-bold mb-6">Get in Touch</h1>
+            <p className="text-xl text-gray-100 max-w-3xl mx-auto">
+              We're here to help you make meaningful connections
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Contact Form Section */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-12 items-start">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              className="bg-white p-8 rounded-lg shadow-sm border border-gray-200"
+            >
+              <h2 className="text-3xl font-bold mb-6">Send us a message</h2>
+              <form className="space-y-6">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-connection-blue focus:border-transparent"
+                    placeholder="Your name"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-connection-blue focus:border-transparent"
+                    placeholder="your@email.com"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
+                    Subject
+                  </label>
+                  <input
+                    type="text"
+                    id="subject"
+                    name="subject"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-connection-blue focus:border-transparent"
+                    placeholder="How can we help?"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+                    Message
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    rows={4}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-connection-blue focus:border-transparent"
+                    placeholder="Your message..."
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-connection-blue text-white py-3 rounded-full hover:bg-connection-blue-70 transition-colors"
+                >
+                  Send Message
+                </button>
+              </form>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              className="space-y-8"
+            >
+              <div>
+                <h3 className="text-2xl font-bold mb-4">Contact Information</h3>
+                <p className="text-gray-600 mb-4">
+                  Have questions about Networkli? We're here to help you connect meaningfully.
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-start">
+                    <span className="text-networkli-orange mr-2">•</span>
+                    <div>
+                      <p className="font-medium">Email</p>
+                      <p className="text-gray-600">support@networkli.com</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="text-networkli-orange mr-2">•</span>
+                    <div>
+                      <p className="font-medium">Support Hours</p>
+                      <p className="text-gray-600">Monday - Friday, 9am - 5pm EST</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-2xl font-bold mb-4">Enterprise Support</h3>
+                <p className="text-gray-600 mb-4">
+                  Looking for enterprise solutions or API integration? Our sales team is ready to help.
+                </p>
+                <button className="bg-black text-white px-6 py-3 rounded-full hover:bg-gray-800 transition-colors">
+                  Contact Sales
+                </button>
+              </div>
+
+              <div>
+                <h3 className="text-2xl font-bold mb-4">Quick Links</h3>
+                <div className="space-y-2">
+                  <p className="text-connection-blue hover:underline cursor-pointer">
+                    Documentation
+                  </p>
+                  <p className="text-connection-blue hover:underline cursor-pointer">
+                    API Reference
+                  </p>
+                  <p className="text-connection-blue hover:underline cursor-pointer">
+                    FAQs
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Support Options */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">How Can We Help?</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              className="bg-white p-6 rounded-lg shadow-sm"
+            >
+              <h3 className="text-xl font-bold mb-4">General Support</h3>
+              <p className="text-gray-600">
+                Questions about your account, billing, or general platform usage
+              </p>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="bg-white p-6 rounded-lg shadow-sm"
+            >
+              <h3 className="text-xl font-bold mb-4">Technical Support</h3>
+              <p className="text-gray-600">
+                API integration, implementation assistance, and technical documentation
+              </p>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              viewport={{ once: true }}
+              className="bg-white p-6 rounded-lg shadow-sm"
+            >
+              <h3 className="text-xl font-bold mb-4">Enterprise Solutions</h3>
+              <p className="text-gray-600">
+                Custom implementations, large-scale deployments, and business partnerships
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+} 

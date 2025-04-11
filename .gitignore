@@ -1,0 +1,82 @@
+# Environment files
+.env
+.env.*
+!.env.example
+networkli-mobile/.env
+networkli-mobile/.env.*
+!networkli-mobile/.env.example
+networkli-api/.env
+networkli-api/.env.*
+!networkli-api/.env.example
+
+# Dependencies
+node_modules/
+.expo/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+
+# macOS
+.DS_Store
+*.pem
+
+# Local development
+*.log
+.vscode/
+.idea/
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
+coverage/
+
+# Temporary files
+*.swp
+*.swo
+*~
+
+# Supabase
+**/supabase/.branches/
+**/supabase/.temp/
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+.env
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts

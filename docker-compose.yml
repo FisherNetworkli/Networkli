@@ -20,6 +20,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
     volumes:
       - db-data:/var/lib/postgresql/data
 
@@ -56,30 +57,33 @@ services:
       GOTRUE_DB_HOST: db
       GOTRUE_DB_PORT: 5432
       GOTRUE_DB_NAME: postgres
+      GOTRUE_DB_USER: postgres
       GOTRUE_DB_PASSWORD: ${POSTGRES_PASSWORD}
       GOTRUE_JWT_SECRET: ${JWT_SECRET}
       GOTRUE_JWT_EXP: 3600
       GOTRUE_SITE_URL: ${SITE_URL}
       GOTRUE_MAILER_AUTOCONFIRM: "true"
       GOTRUE_SMS_AUTOCONFIRM: "true"
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
 
   rest:
     image: postgrest/postgrest:v11.1.0
     restart: unless-stopped
     environment:
-      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_URI: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
       PGRST_DB_SCHEMA: public,storage
       PGRST_DB_ANON_ROLE: anon
       PGRST_JWT_SECRET: ${JWT_SECRET}
       PGRST_DB_USE_LEGACY_GUCS: "false"
 
   realtime:
-    image: supabase/realtime:v2.8.3
+    image: supabase/realtime:v2.34.45
     restart: unless-stopped
     environment:
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: postgres
+      DB_USER: postgres
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_SSL: "false"
       PORT: 4000
@@ -100,6 +104,8 @@ services:
       FILE_SIZE_LIMIT: 52428800
       STORAGE_BACKEND: file
       FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      GLOBAL_S3_BUCKET: local-bucket
+      REGION: us-east-1
     volumes:
       - uploads:/var/lib/storage
 
