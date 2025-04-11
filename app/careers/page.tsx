@@ -136,7 +136,7 @@ export default function CareersPage() {
                     <p className="text-gray-600 mt-2">{position.description}</p>
                   </div>
                   <Link
-                    href={`mailto:careers@networkli.com?subject=Application for ${position.title} Position&body=Hello Networkli team,%0D%0A%0D%0AI am interested in the ${position.title} position.%0D%0A%0D%0APlease find my resume attached.%0D%0A%0D%0ABest regards,`}
+                    href={`mailto:dan@networkly.ai?subject=Application for ${position.title} Position&body=Hello Networkli team,%0D%0A%0D%0AI am interested in the ${position.title} position.%0D%0A%0D%0APlease find my resume attached.%0D%0A%0D%0ABest regards,`}
                     className="inline-flex items-center justify-center px-6 py-2 rounded-full text-sm font-medium bg-connection-blue text-white hover:bg-connection-blue-70 transition-colors whitespace-nowrap"
                   >
                     Apply Now
