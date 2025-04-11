@@ -21,8 +21,7 @@ interface Application {
   createdAt: Date;
 }
 
-export default function AdminApplicationsPage() {
-  const router = useRouter();
+export default function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [loading, setLoading] = useState(true);

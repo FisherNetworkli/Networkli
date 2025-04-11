@@ -46,9 +46,8 @@ export default function ContactPage() {
         subject: '',
         message: ''
       });
-    } catch (err) {
-      setStatus('error');
-      setError('Failed to submit form. Please try again.');
+    } catch (error) {
+      setError('Failed to send message. Please try again.');
     }
   };
 

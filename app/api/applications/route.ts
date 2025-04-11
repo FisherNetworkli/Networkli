@@ -1,72 +1,62 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '../../../lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
-export async function POST(request: Request) {
+export async function GET() {
   try {
-    const body = await request.json();
-    const {
-      name,
-      email,
-      phone,
-      linkedin,
-      github,
-      portfolio,
-      experience,
-      availability,
-      salary,
-      referral,
-      videoUrl
-    } = body;
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
 
-    // Validate required fields
-    if (!name || !email || !experience || !availability || !videoUrl) {
+    const applications = await prisma.jobApplication.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return NextResponse.json(applications);
+  } catch (error) {
+    console.error('Error fetching applications:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch applications' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const { name, email, phone, position, experience, resume, coverLetter } = await request.json();
+
+    if (!name || !email || !phone || !position || !experience || !resume) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Create application submission
-    const submission = await prisma.applicationSubmission.create({
+    const application = await prisma.jobApplication.create({
       data: {
         name,
         email,
-        phone: phone || null,
-        linkedin: linkedin || null,
-        github: github || null,
-        portfolio: portfolio || null,
+        phone,
+        position,
         experience,
-        availability,
-        salary: salary || null,
-        referral: referral || null,
-        videoUrl,
-        status: 'PENDING', // Default status
+        resume,
+        coverLetter,
       },
     });
 
-    return NextResponse.json(submission);
+    return NextResponse.json(application);
   } catch (error) {
-    console.error('Error creating application submission:', error);
+    console.error('Error creating application:', error);
     return NextResponse.json(
-      { error: 'Failed to submit application' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET(request: Request) {
-  try {
-    const submissions = await prisma.applicationSubmission.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    return NextResponse.json(submissions);
-  } catch (error) {
-    console.error('Error fetching application submissions:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch applications' },
+      { error: 'Failed to create application' },
       { status: 500 }
     );
   }

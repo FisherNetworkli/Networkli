@@ -19,7 +19,7 @@ export const blogPosts: BlogPost[] = [
     title: "The Loneliness Epidemic: How Professional Networking Can Combat Social Isolation",
     excerpt: "Discover how meaningful professional connections can help combat the growing loneliness epidemic in our increasingly digital world.",
     content: `
-      <p>The statistics are alarming: 61% of Americans report feeling lonely, and 36% of all Americans—including 61% of young adults—feel "serious loneliness." This isn't just a personal issue—it's a public health crisis that's been linked to increased risk of heart disease, stroke, and premature death.</p>
+      <p>The statistics are alarming: <strong>61% of Americans report feeling lonely</strong>, and <strong>36% of all Americans—including 61% of young adults—feel "serious loneliness."</strong> This isn't just a personal issue—it's a public health crisis that's been linked to increased risk of heart disease, stroke, and premature death.</p>
       
       <p>But there's hope. Research shows that meaningful connections can significantly reduce feelings of loneliness and improve overall well-being. And while social media often gets blamed for increasing isolation, the right kind of digital platform can actually help foster genuine connections.</p>
       
@@ -56,11 +56,37 @@ export const blogPosts: BlogPost[] = [
       </ol>
       
       <p>Remember, combating loneliness isn't just about having more connections—it's about having the right kind of connections that make you feel seen, heard, and valued.</p>
+      
+      <h2>Share Your Story</h2>
+      
+      <p>Have you experienced loneliness in your professional life? How have meaningful connections helped you overcome it? Share your story in the comments below and join the conversation about building a more connected professional world.</p>
+      
+      <div class="share-prompt">
+        <p><strong>Did this article resonate with you? Share it with someone who might need to read it today!</strong></p>
+        <p>Tag a friend who might be feeling disconnected in their professional life.</p>
+      </div>
+      
+      <div class="quiz-section">
+        <h3>Quick Quiz: Are You Building Meaningful Connections?</h3>
+        <ol>
+          <li>Do you have at least 3 professional relationships where you can be completely yourself?</li>
+          <li>When was the last time you had a deep conversation with someone in your network?</li>
+          <li>Do you feel energized or drained after most professional interactions?</li>
+          <li>How often do you reach out to your network just to check in (not for a favor)?</li>
+        </ol>
+        <p>Share your answers in the comments below!</p>
+      </div>
+      
+      <div class="call-to-action">
+        <h3>Ready to Build More Meaningful Connections?</h3>
+        <p>Join our community of professionals who are committed to authentic networking. Sign up for our newsletter to receive more tips on building genuine professional relationships.</p>
+        <button class="cta-button">Join the Community</button>
+      </div>
     `,
-    author: "Dr. Sarah Chen",
+    author: "Dan Fisher",
     date: "March 15, 2024",
     category: "Mental Health",
-    image: "/blog/loneliness-epidemic.jpg",
+    image: "/logos/Applogo.png",
     readTime: "8 min read",
     tags: ["loneliness", "mental health", "professional networking", "social connection", "wellbeing"],
     slug: "loneliness-epidemic-professional-networking",
@@ -71,7 +97,7 @@ export const blogPosts: BlogPost[] = [
     title: "Why Introverts Make Better Networkers (And How to Leverage Your Strengths)",
     excerpt: "Contrary to popular belief, introverts often excel at networking when they play to their natural strengths. Learn how to network authentically as an introvert.",
     content: `
-      <p>In a world that often celebrates extroversion, introverts can feel at a disadvantage when it comes to networking. But research suggests that introverts actually have unique strengths that can make them exceptional networkers—when they know how to leverage them.</p>
+      <p>In a world that often celebrates extroversion, introverts can feel at a disadvantage when it comes to networking. But research suggests that <strong>introverts actually have unique strengths that can make them exceptional networkers</strong>—when they know how to leverage them.</p>
       
       <h2>The Introvert Advantage</h2>
       
@@ -113,11 +139,48 @@ export const blogPosts: BlogPost[] = [
       </ul>
       
       <p>Remember, networking isn't about being the most outgoing person in the room—it's about building genuine, mutually beneficial relationships. And that's something introverts excel at.</p>
+      
+      <h2>Introvert Success Stories</h2>
+      
+      <p>Many successful professionals are introverts who have leveraged their natural strengths:</p>
+      
+      <ul>
+        <li>Warren Buffett, who credits his success to his introverted nature and ability to think deeply</li>
+        <li>Bill Gates, who has spoken about how introversion helped him focus on solving complex problems</li>
+        <li>Rosa Parks, whose quiet strength changed the course of history</li>
+      </ul>
+      
+      <h2>Join the Conversation</h2>
+      
+      <p>Are you an introvert who has found success in networking? Share your strategies and experiences in the comments below. Let's celebrate the power of introverted networking!</p>
+      
+      <div class="share-prompt">
+        <p><strong>Know an introvert who struggles with networking? Share this article with them!</strong></p>
+        <p>Tag a friend who might benefit from these introvert networking strategies.</p>
+      </div>
+      
+      <div class="quiz-section">
+        <h3>Are You an Introvert Networker?</h3>
+        <p>Answer these questions to discover your introvert networking style:</p>
+        <ol>
+          <li>Do you prefer one-on-one conversations over group settings?</li>
+          <li>Do you need time to recharge after social interactions?</li>
+          <li>Do you prefer to listen more than talk in conversations?</li>
+          <li>Do you enjoy deep, meaningful conversations over small talk?</li>
+        </ol>
+        <p>Share your results in the comments below!</p>
+      </div>
+      
+      <div class="call-to-action">
+        <h3>Ready to Network as Your Authentic Self?</h3>
+        <p>Join our community of introvert professionals who are building meaningful connections on their own terms. Sign up for our newsletter to receive more introvert-friendly networking tips.</p>
+        <button class="cta-button">Join the Introvert Network</button>
+      </div>
     `,
-    author: "Michael Rodriguez",
+    author: "Brittany Fisher",
     date: "March 10, 2024",
     category: "Career Development",
-    image: "/blog/introvert-networking.jpg",
+    image: "/logos/Applogo.png",
     readTime: "7 min read",
     tags: ["introverts", "networking", "career development", "personal growth", "authenticity"],
     slug: "introverts-better-networkers",
@@ -125,6 +188,104 @@ export const blogPosts: BlogPost[] = [
   },
   {
     id: "3",
+    title: "The Hidden Power of Weak Ties: How Casual Connections Can Transform Your Career",
+    excerpt: "Discover why your casual connections might be more valuable than your close ones when it comes to career opportunities and professional growth.",
+    content: `
+      <p>Did you know that <strong>80% of jobs are found through networking</strong>, but not necessarily through your closest connections? Research shows that weak ties—casual acquaintances and loose connections—are often more valuable for career advancement than strong ties.</p>
+      
+      <h2>The Science Behind Weak Ties</h2>
+      
+      <p>Sociologist Mark Granovetter's groundbreaking research revealed that weak ties are crucial because they:</p>
+      
+      <ul>
+        <li>Provide access to new information and opportunities</li>
+        <li>Connect you to different social circles</li>
+        <li>Offer fresh perspectives and ideas</li>
+        <li>Bridge gaps between different communities</li>
+      </ul>
+      
+      <h2>Why Weak Ties Matter More Than You Think</h2>
+      
+      <p>Your close friends and family likely have similar:</p>
+      
+      <ul>
+        <li>Professional circles</li>
+        <li>Information sources</li>
+        <li>Career opportunities</li>
+        <li>Industry connections</li>
+      </ul>
+      
+      <p>This means you're often seeing the same opportunities and hearing the same information.</p>
+      
+      <h2>How to Leverage Weak Ties</h2>
+      
+      <p>Strategies for making the most of casual connections:</p>
+      
+      <ol>
+        <li>Maintain a diverse network across industries</li>
+        <li>Stay in touch with former colleagues and classmates</li>
+        <li>Engage with professional communities online</li>
+        <li>Attend industry events and conferences</li>
+        <li>Follow up periodically with casual connections</li>
+      </ol>
+      
+      <h2>Real-World Success Stories</h2>
+      
+      <p>Consider these examples of weak tie success:</p>
+      
+      <ul>
+        <li>A chance conversation at a coffee shop led to a job offer</li>
+        <li>A LinkedIn connection shared an unadvertised position</li>
+        <li>A former colleague's recommendation opened new doors</li>
+        <li>A casual industry event contact became a valuable mentor</li>
+      </ul>
+      
+      <h2>Building Your Weak Tie Network</h2>
+      
+      <p>Practical steps to develop and maintain weak ties:</p>
+      
+      <ul>
+        <li>Set a goal to make 3 new professional connections each month</li>
+        <li>Follow up with old connections every 3-6 months</li>
+        <li>Share valuable information with your network</li>
+        <li>Offer help without expecting immediate returns</li>
+        <li>Stay active on professional social platforms</li>
+      </ul>
+      
+      <div class="share-prompt">
+        <p><strong>Know someone who could benefit from expanding their network?</strong></p>
+        <p>Share this article with them and help them unlock the power of weak ties!</p>
+      </div>
+      
+      <div class="quiz-section">
+        <h3>How Strong is Your Weak Tie Network?</h3>
+        <p>Take this quick assessment:</p>
+        <ol>
+          <li>How many industries are you connected to?</li>
+          <li>How often do you engage with casual connections?</li>
+          <li>Do you maintain relationships with former colleagues?</li>
+          <li>How diverse is your professional network?</li>
+        </ol>
+        <p>Share your score in the comments!</p>
+      </div>
+      
+      <div class="call-to-action">
+        <h3>Ready to Transform Your Career Through Networking?</h3>
+        <p>Join our community of professionals who are mastering the art of weak tie networking. Get weekly tips and strategies delivered to your inbox.</p>
+        <button class="cta-button">Join the Network</button>
+      </div>
+    `,
+    author: "Dan Fisher",
+    date: "March 8, 2024",
+    category: "Career Development",
+    image: "/logos/Applogo.png",
+    readTime: "6 min read",
+    tags: ["networking", "career development", "professional growth", "weak ties", "opportunities"],
+    slug: "power-of-weak-ties",
+    published: true
+  },
+  {
+    id: "4",
     title: "The Future of Work: How AI is Transforming Professional Relationships",
     excerpt: "Explore how artificial intelligence is reshaping how we connect, collaborate, and build professional relationships in the workplace.",
     content: `
@@ -168,18 +329,33 @@ export const blogPosts: BlogPost[] = [
       <p>As AI continues to evolve, we can expect even more sophisticated tools for building and maintaining professional relationships. But the fundamental principles of meaningful connection will remain the same.</p>
       
       <p>The most successful professionals will be those who can leverage AI to enhance their human connections, not replace them.</p>
+      
+      <h2>Real-World Examples</h2>
+      
+      <p>Here are some examples of how AI is already transforming professional relationships:</p>
+      
+      <ul>
+        <li>AI-powered platforms that match mentors and mentees based on compatibility</li>
+        <li>Smart calendars that suggest optimal meeting times for team collaboration</li>
+        <li>Sentiment analysis tools that help managers understand team dynamics</li>
+        <li>Personalized learning platforms that adapt to individual communication styles</li>
+      </ul>
+      
+      <h2>Join the Discussion</h2>
+      
+      <p>How do you think AI will continue to transform professional relationships? What concerns do you have about AI in networking? Share your thoughts in the comments below!</p>
     `,
-    author: "Dr. Emily Zhang",
+    author: "Dan Fisher",
     date: "March 5, 2024",
     category: "Technology",
-    image: "/blog/ai-professional-relationships.jpg",
+    image: "/logos/Applogo.png",
     readTime: "9 min read",
     tags: ["AI", "future of work", "professional relationships", "technology", "networking"],
     slug: "ai-transforming-professional-relationships",
     published: true
   },
   {
-    id: "4",
+    id: "5",
     title: "The Hidden Cost of Networking: How to Avoid Burnout While Building Your Network",
     excerpt: "Learn how to build a meaningful professional network without sacrificing your mental health and well-being.",
     content: `
@@ -231,18 +407,32 @@ export const blogPosts: BlogPost[] = [
       </ul>
       
       <p>Remember, a healthy network is one that supports your growth without compromising your well-being. By taking a more mindful approach to networking, you can build meaningful connections without burning out.</p>
+      
+      <h2>Personal Stories of Networking Burnout</h2>
+      
+      <p>Many professionals have experienced networking burnout firsthand:</p>
+      
+      <ul>
+        <li>A marketing executive who attended 3-4 networking events per week until she experienced complete exhaustion</li>
+        <li>A startup founder who spent hours each day on LinkedIn until he realized he wasn't building genuine connections</li>
+        <li>A consultant who felt pressured to maintain hundreds of weak ties until she shifted to a quality-focused approach</li>
+      </ul>
+      
+      <h2>Share Your Experience</h2>
+      
+      <p>Have you experienced networking burnout? How did you overcome it? Share your story and strategies in the comments below to help others facing similar challenges.</p>
     `,
-    author: "Jennifer Patel",
+    author: "Brittany Fisher",
     date: "February 28, 2024",
     category: "Wellness",
-    image: "/blog/networking-burnout.jpg",
+    image: "/logos/Applogo.png",
     readTime: "8 min read",
     tags: ["burnout", "wellness", "networking", "mental health", "work-life balance"],
     slug: "avoiding-networking-burnout",
     published: true
   },
   {
-    id: "5",
+    id: "6",
     title: "From Small Talk to Meaningful Connections: The Art of Authentic Networking",
     excerpt: "Discover how to transform superficial networking conversations into genuine, lasting professional relationships.",
     content: `
@@ -305,18 +495,34 @@ export const blogPosts: BlogPost[] = [
       </ul>
       
       <p>Remember, authentic networking isn't about being the most outgoing person in the room—it's about being genuine, curious, and willing to connect on a deeper level.</p>
+      
+      <h2>Conversation Starters That Go Beyond Small Talk</h2>
+      
+      <p>Here are some questions that can help you move beyond small talk:</p>
+      
+      <ul>
+        <li>"What's a project you're currently excited about?"</li>
+        <li>"What's something you've learned recently that surprised you?"</li>
+        <li>"If you could solve any problem in your industry, what would it be?"</li>
+        <li>"What's a professional challenge you're currently facing?"</li>
+        <li>"What's something you wish more people knew about your work?"</li>
+      </ul>
+      
+      <h2>Share Your Experience</h2>
+      
+      <p>What strategies have you used to move beyond small talk in your professional networking? Share your favorite conversation starters and techniques in the comments below!</p>
     `,
-    author: "David Thompson",
+    author: "Dan Fisher",
     date: "February 20, 2024",
     category: "Communication",
-    image: "/blog/authentic-networking.jpg",
+    image: "/logos/Applogo.png",
     readTime: "10 min read",
     tags: ["authenticity", "communication", "networking", "relationships", "personal growth"],
     slug: "art-of-authentic-networking",
     published: true
   },
   {
-    id: "6",
+    id: "7",
     title: "The Science of Connection: How Our Brains Are Wired for Professional Relationships",
     excerpt: "Explore the neuroscience behind professional connections and how understanding our brain's social wiring can help us build better networks.",
     content: `
@@ -378,18 +584,33 @@ export const blogPosts: BlogPost[] = [
       </ul>
       
       <p>By understanding how our brains are wired for connection, we can build more meaningful and energizing professional relationships.</p>
+      
+      <h2>Practical Applications</h2>
+      
+      <p>Here are some practical ways to apply brain science to your networking:</p>
+      
+      <ul>
+        <li>Schedule face-to-face meetings for important connections to activate mirror neurons</li>
+        <li>Use video calls instead of audio-only to capture more nonverbal cues</li>
+        <li>Create environments with reduced distractions to support prefrontal cortex function</li>
+        <li>Build trust through consistent, positive interactions to boost oxytocin</li>
+      </ul>
+      
+      <h2>Join the Discussion</h2>
+      
+      <p>Have you noticed how different types of professional interactions affect your energy levels? Share your observations about the neuroscience of connection in the comments below!</p>
     `,
-    author: "Dr. Marcus Johnson",
+    author: "Brittany Fisher",
     date: "February 15, 2024",
     category: "Science",
-    image: "/blog/science-of-connection.jpg",
+    image: "/logos/Applogo.png",
     readTime: "11 min read",
     tags: ["neuroscience", "connection", "brain science", "relationships", "psychology"],
     slug: "science-of-professional-connection",
     published: true
   },
   {
-    id: "7",
+    id: "8",
     title: "Networking for Introverts: A Field Guide to Authentic Connection",
     excerpt: "A comprehensive guide for introverts on how to build meaningful professional relationships without pretending to be an extrovert.",
     content: `
@@ -462,97 +683,28 @@ export const blogPosts: BlogPost[] = [
       </ol>
       
       <p>Remember, networking isn't about being the most outgoing person in the room—it's about building genuine, mutually beneficial relationships. And that's something introverts excel at when they play to their strengths.</p>
+      
+      <h2>Introvert Success Stories</h2>
+      
+      <p>Many successful introverts have found their own path to networking:</p>
+      
+      <ul>
+        <li>A software engineer who built her network through technical blog posts and open-source contributions</li>
+        <li>A consultant who hosts small, focused dinner parties instead of attending large networking events</li>
+        <li>A founder who leverages his writing skills to build connections through thoughtful LinkedIn posts</li>
+      </ul>
+      
+      <h2>Share Your Introvert Networking Journey</h2>
+      
+      <p>Are you an introvert who has found success in networking? Share your strategies and experiences in the comments below. Let's celebrate the power of introverted networking!</p>
     `,
-    author: "Sophia Chen",
+    author: "Dan Fisher",
     date: "February 10, 2024",
     category: "Personal Development",
-    image: "/blog/introvert-networking-guide.jpg",
+    image: "/logos/Applogo.png",
     readTime: "12 min read",
     tags: ["introverts", "networking", "personal development", "authenticity", "communication"],
     slug: "networking-for-introverts-field-guide",
-    published: true
-  },
-  {
-    id: "8",
-    title: "The Hidden Power of Weak Ties: How Casual Connections Can Transform Your Career",
-    excerpt: "Discover why your casual professional connections—not your close contacts—often lead to the most valuable opportunities.",
-    content: `
-      <p>When we think about professional networking, we often focus on building strong, close relationships. But research shows that our "weak ties"—casual acquaintances and distant connections—are often the key to new opportunities and ideas.</p>
-      
-      <h2>The Science of Weak Ties</h2>
-      
-      <p>Sociologist Mark Granovetter's groundbreaking research found that:</p>
-      
-      <ul>
-        <li>People are more likely to find jobs through weak ties than strong ties</li>
-        <li>Weak ties provide access to new information and perspectives</li>
-        <li>Diverse networks with many weak ties lead to more innovation</li>
-        <li>Weak ties bridge different social circles and communities</li>
-      </ul>
-      
-      <h2>Why Weak Ties Are So Powerful</h2>
-      
-      <p>Weak ties offer unique advantages:</p>
-      
-      <ul>
-        <li>They connect you to new information and opportunities</li>
-        <li>They provide diverse perspectives and ideas</li>
-        <li>They're less likely to have the same information as your close contacts</li>
-        <li>They can introduce you to entirely new networks</li>
-      </ul>
-      
-      <h2>Balancing Strong and Weak Ties</h2>
-      
-      <p>A healthy professional network includes both:</p>
-      
-      <ul>
-        <li>Strong ties: Close colleagues, mentors, and collaborators who provide deep support</li>
-        <li>Weak ties: Casual acquaintances, industry contacts, and distant connections who provide breadth</li>
-      </ul>
-      
-      <h2>How to Cultivate Weak Ties</h2>
-      
-      <p>Strategies for building and maintaining weak ties:</p>
-      
-      <ol>
-        <li>Attend diverse events outside your usual circles</li>
-        <li>Connect with people who have different backgrounds and perspectives</li>
-        <li>Use technology to maintain connections with distant contacts</li>
-        <li>Share valuable information with your network</li>
-        <li>Follow up periodically without expecting immediate returns</li>
-      </ol>
-      
-      <h2>The Role of Technology in Weak Tie Networks</h2>
-      
-      <p>Digital platforms are particularly effective for maintaining weak ties:</p>
-      
-      <ul>
-        <li>They make it easy to stay connected with distant contacts</li>
-        <li>They provide opportunities to share information and value</li>
-        <li>They can introduce you to new connections outside your usual circles</li>
-        <li>They allow for low-effort maintenance of many connections</li>
-      </ul>
-      
-      <h2>Weak Ties in the Digital Age</h2>
-      
-      <p>The digital age has transformed how we build and maintain weak ties:</p>
-      
-      <ul>
-        <li>Social media makes it easier to stay connected with distant contacts</li>
-        <li>Professional platforms help us discover new connections</li>
-        <li>Digital communication reduces the effort needed to maintain weak ties</li>
-        <li>Online communities create new opportunities for weak tie formation</li>
-      </ul>
-      
-      <p>By strategically cultivating both strong and weak ties, you can build a network that provides both depth and breadth—giving you access to new opportunities while maintaining meaningful connections.</p>
-    `,
-    author: "Dr. James Wilson",
-    date: "February 5, 2024",
-    category: "Career Development",
-    image: "/blog/weak-ties-career.jpg",
-    readTime: "10 min read",
-    tags: ["weak ties", "networking", "career development", "opportunities", "innovation"],
-    slug: "hidden-power-of-weak-ties",
     published: true
   },
   {
@@ -630,11 +782,27 @@ export const blogPosts: BlogPost[] = [
       </ul>
       
       <p>Remember, a small network of meaningful connections is far more valuable than a large network of superficial ones. By focusing on quality over quantity, you can build a network that truly supports your growth and success.</p>
+      
+      <h2>The Quality Network Challenge</h2>
+      
+      <p>Take the Quality Network Challenge:</p>
+      
+      <ol>
+        <li>Identify your 5 most valuable professional connections</li>
+        <li>Schedule a meaningful conversation with each one this month</li>
+        <li>Share something valuable with each connection</li>
+        <li>Ask how you can support their goals</li>
+        <li>Reflect on how these deeper connections feel compared to shallow ones</li>
+      </ol>
+      
+      <h2>Share Your Experience</h2>
+      
+      <p>Have you shifted from a quantity to a quality approach in your networking? What differences have you noticed? Share your experience in the comments below!</p>
     `,
-    author: "Dr. Lisa Martinez",
+    author: "Dan Fisher",
     date: "January 30, 2024",
     category: "Personal Development",
-    image: "/blog/networking-paradox.jpg",
+    image: "/logos/Applogo.png",
     readTime: "11 min read",
     tags: ["networking", "relationships", "quality", "personal development", "professional growth"],
     slug: "networking-paradox-quality-quantity",
@@ -718,11 +886,26 @@ export const blogPosts: BlogPost[] = [
       </ul>
       
       <p>The future of professional networking is one where technology understands and adapts to your unique needs, helping you build more meaningful connections with less effort and more authenticity.</p>
+      
+      <h2>AI Networking in Action</h2>
+      
+      <p>Here are some examples of AI-enhanced networking in action:</p>
+      
+      <ul>
+        <li>A platform that matches mentors and mentees based on communication style compatibility</li>
+        <li>An app that suggests conversation topics based on shared interests and values</li>
+        <li>A tool that analyzes your networking style and provides personalized improvement suggestions</li>
+        <li>A system that predicts which connections are most likely to lead to meaningful collaborations</li>
+      </ul>
+      
+      <h2>Join the Discussion</h2>
+      
+      <p>How do you think AI will continue to transform professional networking? What concerns do you have about AI in networking? Share your thoughts in the comments below!</p>
     `,
-    author: "Dr. Alex Kumar",
+    author: "Brittany Fisher",
     date: "January 25, 2024",
     category: "Technology",
-    image: "/blog/ai-personalized-networking.jpg",
+    image: "/logos/Applogo.png",
     readTime: "12 min read",
     tags: ["AI", "networking", "technology", "personalization", "future of work"],
     slug: "future-of-ai-personalized-networking",

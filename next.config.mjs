@@ -9,7 +9,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'your-supabase-project.supabase.co',
+        hostname: 'networkly.supabase.co',
       },
     ],
   },

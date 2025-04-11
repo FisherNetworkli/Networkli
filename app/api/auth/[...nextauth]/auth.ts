@@ -1,22 +1,24 @@
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import { NextAuthOptions, DefaultSession } from 'next-auth';
+import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { Role } from '@prisma/client';
 
 declare module 'next-auth' {
   interface User {
-    role?: string;
+    id: string;
+    role: Role;
   }
+
   interface Session {
-    user: {
-      role?: string;
-    } & DefaultSession['user'];
+    user: User & {
+      id: string;
+      role: Role;
+    };
   }
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -35,7 +37,7 @@ export const authOptions: NextAuthOptions = {
           },
         });
 
-        if (!user || !user?.password) {
+        if (!user || !user.password) {
           throw new Error('Invalid credentials');
         }
 
@@ -68,6 +70,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         return {
           ...token,
+          id: user.id,
           role: user.role,
         };
       }
@@ -78,7 +81,8 @@ export const authOptions: NextAuthOptions = {
         ...session,
         user: {
           ...session.user,
-          role: token.role,
+          id: token.id as string,
+          role: token.role as Role,
         },
       };
     },

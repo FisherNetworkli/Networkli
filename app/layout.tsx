@@ -4,6 +4,9 @@ import { Inter } from 'next/font/google'
 import '../styles/globals.css'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import Providers from '../components/Providers'
+import { getServerSession } from 'next-auth'
+import { authOptions } from './api/auth/[...nextauth]/auth'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -26,6 +29,15 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
   },
+  icons: {
+    icon: [
+      { url: '/logos/Applogo.png', sizes: '32x32' },
+      { url: '/logos/Applogo.png', sizes: '16x16' },
+    ],
+    apple: [
+      { url: '/logos/Applogo.png', sizes: '180x180' },
+    ],
+  },
   openGraph: {
     title: 'Networkli - Professional Networking Reimagined for Introverts',
     description: 'Connect with purpose, build meaningful professional relationships, and grow your career with Networkli. Our AI-powered platform helps introverts network comfortably and authentically.',
@@ -33,7 +45,7 @@ export const metadata: Metadata = {
     siteName: 'Networkli',
     images: [
       {
-        url: '/images/og-image.jpg',
+        url: '/logos/networkli-logo-blue.png',
         width: 1200,
         height: 630,
         alt: 'Networkli - Professional Networking Reimagined',
@@ -46,7 +58,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Networkli - Professional Networking Reimagined for Introverts',
     description: 'Connect with purpose, build meaningful professional relationships, and grow your career with Networkli.',
-    images: ['/images/twitter-image.jpg'],
+    images: ['/logos/networkli-logo-blue.png'],
     creator: '@networkli',
   },
   robots: {
@@ -65,11 +77,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const session = await getServerSession(authOptions)
+
   return (
     <html lang="en" className={`${inter.variable} scroll-smooth antialiased`}>
       <head>
@@ -98,14 +112,16 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-gradient-to-b from-white via-white to-connection-blue-40/10 font-sans text-gray-900">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-networkli-orange-40/10 to-connection-blue-40/10 opacity-50" />
-          <Navbar />
-          <main className="relative flex min-h-screen flex-col">
-            {children}
-          </main>
-          <Footer />
-        </div>
+        <Providers session={session}>
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-networkli-orange-40/10 to-connection-blue-40/10 opacity-50" />
+            <Navbar />
+            <main className="relative flex min-h-screen flex-col">
+              {children}
+            </main>
+            <Footer />
+          </div>
+        </Providers>
       </body>
     </html>
   )

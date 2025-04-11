@@ -5,8 +5,23 @@ import Link from 'next/link';
 import { PencilIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { blogPosts } from '../../blog/blogData';
 
+// Define the Post interface
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  author: string;
+  date: string;
+  category: string;
+  image: string;
+  readTime: string;
+  published: boolean;
+}
+
 export default function BlogManagement() {
-  const [posts, setPosts] = useState(blogPosts);
+  const [posts, setPosts] = useState<Post[]>(blogPosts);
 
   const handleDelete = async (id: string) => {
     // TODO: Implement delete functionality

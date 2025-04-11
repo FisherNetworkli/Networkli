@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
@@ -21,7 +21,6 @@ export default function Navbar() {
               variant="default"
               className="w-48 h-8"
             />
-            <span className="text-gray-600 text-sm">mobile app</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -37,6 +36,12 @@ export default function Navbar() {
               className="text-sm font-medium text-gray-600 hover:text-connection-blue transition-colors"
             >
               Pricing
+            </Link>
+            <Link 
+              href="/blog" 
+              className="text-sm font-medium text-gray-600 hover:text-connection-blue transition-colors"
+            >
+              Blog
             </Link>
             <Link 
               href="/about" 
@@ -95,6 +100,12 @@ export default function Navbar() {
           exit={{ opacity: 0, y: -10 }}
         >
           <div className="px-4 pt-4 pb-6 space-y-4">
+            <div className="flex items-center justify-center mb-6">
+              <Logo 
+                variant="default"
+                className="w-32 h-8"
+              />
+            </div>
             <Link 
               href="/features" 
               className="block px-4 py-2.5 text-base font-medium text-gray-600 hover:text-connection-blue hover:bg-gray-50 rounded-lg transition-colors"
@@ -106,6 +117,12 @@ export default function Navbar() {
               className="block px-4 py-2.5 text-base font-medium text-gray-600 hover:text-connection-blue hover:bg-gray-50 rounded-lg transition-colors"
             >
               Pricing
+            </Link>
+            <Link 
+              href="/blog" 
+              className="block px-4 py-2.5 text-base font-medium text-gray-600 hover:text-connection-blue hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              Blog
             </Link>
             <Link 
               href="/about" 

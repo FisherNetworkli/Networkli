@@ -1,6 +1,26 @@
+'use client';
+
+import React from 'react';
+import { useParams } from 'next/navigation';
 import { blogPosts } from '../blogData';
+import { format } from 'date-fns';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+
+// Define the Post interface
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  author: string;
+  date: string;
+  category: string;
+  image: string;
+  readTime: string;
+  published: boolean;
+}
 
 interface BlogPostPageProps {
   params: {

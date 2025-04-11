@@ -14,8 +14,7 @@ interface Message {
   createdAt: Date;
 }
 
-export default function AdminContactPage() {
-  const router = useRouter();
+export default function ContactPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [loading, setLoading] = useState(true);

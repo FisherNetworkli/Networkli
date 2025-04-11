@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '../../../../lib/prisma';
-import { authOptions } from '../../auth/[...nextauth]/auth';
+import { authOptions } from '@/lib/auth';
 
 // GET /api/blog/[slug] - Get a single blog post
 export async function GET(

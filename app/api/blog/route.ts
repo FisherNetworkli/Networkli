@@ -1,22 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
-import { authOptions } from '../auth/[...nextauth]/auth';
+import { authOptions } from '@/lib/auth';
 
 // GET /api/blog - Get all blog posts
 export async function GET() {
   try {
     const posts = await prisma.blogPost.findMany({
-      orderBy: {
-        createdAt: 'desc',
+      where: {
+        published: true,
       },
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
+      orderBy: {
+        date: 'desc',
       },
     });
 
@@ -31,25 +26,34 @@ export async function GET() {
 }
 
 // POST /api/blog - Create a new blog post
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const data = await request.json();
-    const { title, content, excerpt, image, category, tags, readTime, author } = data;
+    const {
+      title,
+      slug,
+      content,
+      excerpt,
+      image,
+      category,
+      tags,
+      readTime,
+      author,
+    } = await request.json();
 
-    // Generate slug from title
-    const slug = title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
+    if (!title || !slug || !content || !excerpt || !image || !category || !tags || !readTime || !author) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
 
     const post = await prisma.blogPost.create({
       data: {
@@ -62,7 +66,7 @@ export async function POST(request: Request) {
         tags,
         readTime,
         author,
-        userId: session.user.id,
+        userId: session.user.id as string,
         published: false,
       },
     });
