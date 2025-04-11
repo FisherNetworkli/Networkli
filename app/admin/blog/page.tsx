@@ -1,27 +1,22 @@
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { PencilIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
-
-const samplePosts = [
-  {
-    id: 1,
-    title: 'Getting Started with Networkli',
-    excerpt: 'Learn how to make the most of your professional network...',
-    status: 'Published',
-    date: '2024-03-10',
-  },
-  {
-    id: 2,
-    title: 'Networking Tips for Introverts',
-    excerpt: 'Discover effective networking strategies tailored for introverts...',
-    status: 'Draft',
-    date: '2024-03-09',
-  },
-  // Add more sample posts as needed
-];
+import { blogPosts } from '../../blog/blogData';
 
 export default function BlogManagement() {
+  const [posts, setPosts] = useState(blogPosts);
+
+  const handleDelete = async (id: string) => {
+    // TODO: Implement delete functionality
+    if (confirm('Are you sure you want to delete this post?')) {
+      console.log('Deleting post:', id);
+    }
+  };
+
   return (
-    <div>
+    <div className="px-4 sm:px-6 lg:px-8 py-8">
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
           <h1 className="text-2xl font-semibold text-gray-900">Blog Posts</h1>
@@ -51,13 +46,16 @@ export default function BlogManagement() {
                       Title
                     </th>
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Excerpt
+                      Category
                     </th>
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Status
+                      Author
                     </th>
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                       Date
+                    </th>
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      Status
                     </th>
                     <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                       <span className="sr-only">Actions</span>
@@ -65,39 +63,32 @@ export default function BlogManagement() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {samplePosts.map((post) => (
+                  {posts.map((post) => (
                     <tr key={post.id}>
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                         {post.title}
                       </td>
-                      <td className="px-3 py-4 text-sm text-gray-500 max-w-md truncate">
-                        {post.excerpt}
-                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{post.category}</td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{post.author}</td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{post.date}</td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        <span
-                          className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                            post.status === 'Published'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}
-                        >
-                          {post.status}
+                        <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                          post.published ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {post.published ? 'Published' : 'Draft'}
                         </span>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {new Date(post.date).toLocaleDateString()}
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                         <div className="flex justify-end gap-2">
-                          <button
+                          <Link
+                            href={`/admin/blog/edit/${post.id}`}
                             className="text-connection-blue hover:text-connection-blue-dark"
-                            onClick={() => {/* Handle edit */}}
                           >
                             <PencilIcon className="h-5 w-5" aria-hidden="true" />
-                          </button>
+                          </Link>
                           <button
+                            onClick={() => handleDelete(post.id)}
                             className="text-red-600 hover:text-red-900"
-                            onClick={() => {/* Handle delete */}}
                           >
                             <TrashIcon className="h-5 w-5" aria-hidden="true" />
                           </button>

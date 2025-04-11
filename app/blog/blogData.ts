@@ -10,6 +10,7 @@ export interface BlogPost {
   readTime: string;
   tags: string[];
   slug: string;
+  published: boolean;
 }
 
 export const blogPosts: BlogPost[] = [
@@ -62,7 +63,8 @@ export const blogPosts: BlogPost[] = [
     image: "/blog/loneliness-epidemic.jpg",
     readTime: "8 min read",
     tags: ["loneliness", "mental health", "professional networking", "social connection", "wellbeing"],
-    slug: "loneliness-epidemic-professional-networking"
+    slug: "loneliness-epidemic-professional-networking",
+    published: true
   },
   {
     id: "2",
@@ -118,7 +120,8 @@ export const blogPosts: BlogPost[] = [
     image: "/blog/introvert-networking.jpg",
     readTime: "7 min read",
     tags: ["introverts", "networking", "career development", "personal growth", "authenticity"],
-    slug: "introverts-better-networkers"
+    slug: "introverts-better-networkers",
+    published: true
   },
   {
     id: "3",
@@ -172,7 +175,8 @@ export const blogPosts: BlogPost[] = [
     image: "/blog/ai-professional-relationships.jpg",
     readTime: "9 min read",
     tags: ["AI", "future of work", "professional relationships", "technology", "networking"],
-    slug: "ai-transforming-professional-relationships"
+    slug: "ai-transforming-professional-relationships",
+    published: true
   },
   {
     id: "4",
@@ -234,7 +238,8 @@ export const blogPosts: BlogPost[] = [
     image: "/blog/networking-burnout.jpg",
     readTime: "8 min read",
     tags: ["burnout", "wellness", "networking", "mental health", "work-life balance"],
-    slug: "avoiding-networking-burnout"
+    slug: "avoiding-networking-burnout",
+    published: true
   },
   {
     id: "5",
@@ -307,7 +312,8 @@ export const blogPosts: BlogPost[] = [
     image: "/blog/authentic-networking.jpg",
     readTime: "10 min read",
     tags: ["authenticity", "communication", "networking", "relationships", "personal growth"],
-    slug: "art-of-authentic-networking"
+    slug: "art-of-authentic-networking",
+    published: true
   },
   {
     id: "6",
@@ -379,7 +385,8 @@ export const blogPosts: BlogPost[] = [
     image: "/blog/science-of-connection.jpg",
     readTime: "11 min read",
     tags: ["neuroscience", "connection", "brain science", "relationships", "psychology"],
-    slug: "science-of-professional-connection"
+    slug: "science-of-professional-connection",
+    published: true
   },
   {
     id: "7",
@@ -462,7 +469,8 @@ export const blogPosts: BlogPost[] = [
     image: "/blog/introvert-networking-guide.jpg",
     readTime: "12 min read",
     tags: ["introverts", "networking", "personal development", "authenticity", "communication"],
-    slug: "networking-for-introverts-field-guide"
+    slug: "networking-for-introverts-field-guide",
+    published: true
   },
   {
     id: "8",
@@ -544,7 +552,8 @@ export const blogPosts: BlogPost[] = [
     image: "/blog/weak-ties-career.jpg",
     readTime: "10 min read",
     tags: ["weak ties", "networking", "career development", "opportunities", "innovation"],
-    slug: "hidden-power-of-weak-ties"
+    slug: "hidden-power-of-weak-ties",
+    published: true
   },
   {
     id: "9",
@@ -628,7 +637,8 @@ export const blogPosts: BlogPost[] = [
     image: "/blog/networking-paradox.jpg",
     readTime: "11 min read",
     tags: ["networking", "relationships", "quality", "personal development", "professional growth"],
-    slug: "networking-paradox-quality-quantity"
+    slug: "networking-paradox-quality-quantity",
+    published: true
   },
   {
     id: "10",
@@ -715,6 +725,7 @@ export const blogPosts: BlogPost[] = [
     image: "/blog/ai-personalized-networking.jpg",
     readTime: "12 min read",
     tags: ["AI", "networking", "technology", "personalization", "future of work"],
-    slug: "future-of-ai-personalized-networking"
+    slug: "future-of-ai-personalized-networking",
+    published: true
   }
 ]; 

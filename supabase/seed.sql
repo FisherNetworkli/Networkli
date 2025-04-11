@@ -1,25 +1,29 @@
 -- Seed data for testing
 
 -- Insert sample skills
-INSERT INTO skills (id, name, category) VALUES
-    ('c22e33d6-1e98-4f0a-a290-4c0523171f12', 'JavaScript', 'Programming'),
-    ('d8b4b7a2-b5d1-4c91-8f11-5b4e3a4e8f9d', 'Python', 'Programming'),
-    ('f6a7b234-8c91-4f6a-9e56-2e5f9c8d1a3b', 'React', 'Frontend'),
-    ('a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d', 'Node.js', 'Backend'),
-    ('b2c3d4e5-f6a7-5b6c-9d0e-2f3a4b5c6d7e', 'SQL', 'Database'),
-    ('c3d4e5f6-a7b8-6c9d-0e1f-3a4b5c6d7e8f', 'AWS', 'Cloud'),
-    ('d4e5f6a7-b8c9-7d0e-1f2a-4b5c6d7e8f9a', 'Docker', 'DevOps'),
-    ('e5f6a7b8-c9d0-8e1f-2a3b-5c6d7e8f9a0b', 'UI/UX Design', 'Design'),
-    ('f6a7b8c9-d0e1-9f2a-3b4c-6d7e8f9a0b1c', 'Product Management', 'Business'),
-    ('a7b8c9d0-e1f2-0a3b-4c5d-7e8f9a0b1c2d', 'Digital Marketing', 'Marketing');
+INSERT INTO skills (name, category) VALUES
+    ('JavaScript', 'Programming'),
+    ('Python', 'Programming'),
+    ('React', 'Frontend'),
+    ('Node.js', 'Backend'),
+    ('SQL', 'Database'),
+    ('AWS', 'Cloud'),
+    ('Docker', 'DevOps'),
+    ('UI/UX Design', 'Design'),
+    ('Product Management', 'Business'),
+    ('Digital Marketing', 'Marketing')
+ON CONFLICT (name) DO UPDATE SET category = EXCLUDED.category;
 
 -- Insert sample topics
-INSERT INTO topics (id, name) VALUES
-    ('b8c9d0e1-f2a3-1b4c-5d6e-8f9a0b1c2d3e', 'Web Development'),
-    ('c9d0e1f2-a3b4-2c5d-6e7f-9a0b1c2d3e4f', 'Data Science'),
-    ('d0e1f2a3-b4c5-3d6e-7f8a-0b1c2d3e4f5a', 'Mobile Development'),
-    ('e1f2a3b4-c5d6-4e7f-8a9b-1c2d3e4f5a6b', 'Cloud Computing'),
-    ('f2a3b4c5-d6e7-5f8a-9b0c-2d3e4f5a6b7c', 'Artificial Intelligence');
+INSERT INTO topics (name) VALUES
+    ('Web Development'),
+    ('Data Science'),
+    ('Mobile Development'),
+    ('Cloud Computing'),
+    ('Artificial Intelligence'),
+    ('Product Management'),
+    ('UX/UI Design')
+ON CONFLICT (name) DO NOTHING;
 
 -- Insert sample profiles (passwords would be handled by Supabase Auth)
 INSERT INTO profiles (id, email, full_name, title, company, industry, bio, location, website, role) VALUES
@@ -31,11 +35,11 @@ INSERT INTO profiles (id, email, full_name, title, company, industry, bio, locat
 
 -- Insert sample user skills
 INSERT INTO user_skills (profile_id, skill_id, level, years_of_experience) VALUES
-    ('123e4567-e89b-12d3-a456-426614174000', 'c22e33d6-1e98-4f0a-a290-4c0523171f12', 'expert', 8),
-    ('123e4567-e89b-12d3-a456-426614174000', 'f6a7b234-8c91-4f6a-9e56-2e5f9c8d1a3b', 'advanced', 5),
-    ('223e4567-e89b-12d3-a456-426614174001', 'f6a7b8c9-d0e1-9f2a-3b4c-6d7e8f9a0b1c', 'expert', 6),
-    ('323e4567-e89b-12d3-a456-426614174002', 'e5f6a7b8-c9d0-8e1f-2a3b-5c6d7e8f9a0b', 'expert', 7),
-    ('423e4567-e89b-12d3-a456-426614174003', 'd8b4b7a2-b5d1-4c91-8f11-5b4e3a4e8f9d', 'expert', 5);
+    ('123e4567-e89b-12d3-a456-426614174000', (SELECT id FROM skills WHERE name = 'JavaScript'), 'expert'::skill_level, 8),
+    ('123e4567-e89b-12d3-a456-426614174000', (SELECT id FROM skills WHERE name = 'React'), 'advanced'::skill_level, 5),
+    ('223e4567-e89b-12d3-a456-426614174001', (SELECT id FROM skills WHERE name = 'Product Management'), 'expert'::skill_level, 6),
+    ('323e4567-e89b-12d3-a456-426614174002', (SELECT id FROM skills WHERE name = 'UI/UX Design'), 'expert'::skill_level, 7),
+    ('423e4567-e89b-12d3-a456-426614174003', (SELECT id FROM skills WHERE name = 'Python'), 'expert'::skill_level, 5);
 
 -- Insert sample events
 INSERT INTO events (id, title, description, format, date, location, virtual_link, max_attendees, organizer_id, image_url) VALUES
@@ -45,16 +49,16 @@ INSERT INTO events (id, title, description, format, date, location, virtual_link
 
 -- Insert sample event skills
 INSERT INTO event_skills (event_id, skill_id, required_level) VALUES
-    ('623e4567-e89b-12d3-a456-426614174000', 'c22e33d6-1e98-4f0a-a290-4c0523171f12', 'intermediate'),
-    ('623e4567-e89b-12d3-a456-426614174000', 'f6a7b234-8c91-4f6a-9e56-2e5f9c8d1a3b', 'beginner'),
-    ('723e4567-e89b-12d3-a456-426614174001', 'f6a7b8c9-d0e1-9f2a-3b4c-6d7e8f9a0b1c', 'intermediate'),
-    ('823e4567-e89b-12d3-a456-426614174002', 'e5f6a7b8-c9d0-8e1f-2a3b-5c6d7e8f9a0b', 'advanced');
+    ('623e4567-e89b-12d3-a456-426614174000', (SELECT id FROM skills WHERE name = 'JavaScript'), 'intermediate'::skill_level),
+    ('623e4567-e89b-12d3-a456-426614174000', (SELECT id FROM skills WHERE name = 'React'), 'beginner'::skill_level),
+    ('723e4567-e89b-12d3-a456-426614174001', (SELECT id FROM skills WHERE name = 'Product Management'), 'intermediate'::skill_level),
+    ('823e4567-e89b-12d3-a456-426614174002', (SELECT id FROM skills WHERE name = 'UI/UX Design'), 'advanced'::skill_level);
 
 -- Insert sample event topics
 INSERT INTO event_topics (event_id, topic_id) VALUES
-    ('623e4567-e89b-12d3-a456-426614174000', 'b8c9d0e1-f2a3-1b4c-5d6e-8f9a0b1c2d3e'),
-    ('723e4567-e89b-12d3-a456-426614174001', 'f2a3b4c5-d6e7-5f8a-9b0c-2d3e4f5a6b7c'),
-    ('823e4567-e89b-12d3-a456-426614174002', 'b8c9d0e1-f2a3-1b4c-5d6e-8f9a0b1c2d3e');
+    ('623e4567-e89b-12d3-a456-426614174000', (SELECT id FROM topics WHERE name = 'Web Development')),
+    ('723e4567-e89b-12d3-a456-426614174001', (SELECT id FROM topics WHERE name = 'Product Management')),
+    ('823e4567-e89b-12d3-a456-426614174002', (SELECT id FROM topics WHERE name = 'UX/UI Design'));
 
 -- Insert sample connections
 INSERT INTO connections (id, requester_id, receiver_id, status) VALUES

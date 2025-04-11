@@ -1,8 +1,8 @@
 'use client';
 
+import React, { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -28,7 +28,7 @@ export default function LoginForm() {
       if (result?.error) {
         setError('Invalid credentials');
       } else {
-        // The role-based redirect will be handled by the page component
+        // The redirect will be handled by the server component
         router.refresh();
       }
     } catch (error) {
@@ -41,8 +41,12 @@ export default function LoginForm() {
   return (
     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
       {error && (
-        <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm">
-          {error}
+        <div className="rounded-md bg-red-50 p-4">
+          <div className="flex">
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">{error}</h3>
+            </div>
+          </div>
         </div>
       )}
       <div className="rounded-md shadow-sm -space-y-px">

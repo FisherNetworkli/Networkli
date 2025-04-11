@@ -52,10 +52,7 @@ ON public.event_attendees(status);
 
 -- Add composite indexes for relationship lookups
 CREATE INDEX IF NOT EXISTS idx_user_skills_lookup 
-ON public.user_skills(user_id, skill_id);
-
-CREATE INDEX IF NOT EXISTS idx_user_interests_lookup 
-ON public.user_interests(user_id, topic_id);
+ON public.user_skills(profile_id, skill_id);
 
 -- Add text search index for event search
 CREATE INDEX IF NOT EXISTS idx_events_text_search 
