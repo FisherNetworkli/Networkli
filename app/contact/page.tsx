@@ -1,9 +1,57 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 
 export default function ContactPage() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+  const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [error, setError] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setStatus('submitting');
+    setError('');
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit form');
+      }
+
+      setStatus('success');
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        message: ''
+      });
+    } catch (err) {
+      setStatus('error');
+      setError('Failed to submit form. Please try again.');
+    }
+  };
+
   return (
     <div className="bg-white">
       {/* Hero Section */}
@@ -35,7 +83,17 @@ export default function ContactPage() {
               className="bg-white p-8 rounded-lg shadow-sm border border-gray-200"
             >
               <h2 className="text-3xl font-bold mb-6">Send us a message</h2>
-              <form className="space-y-6">
+              {status === 'success' && (
+                <div className="mb-6 p-4 bg-green-50 text-green-800 rounded-lg">
+                  Thank you for your message! We'll get back to you soon.
+                </div>
+              )}
+              {status === 'error' && (
+                <div className="mb-6 p-4 bg-red-50 text-red-800 rounded-lg">
+                  {error}
+                </div>
+              )}
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                     Name
@@ -44,6 +102,9 @@ export default function ContactPage() {
                     type="text"
                     id="name"
                     name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-connection-blue focus:border-transparent"
                     placeholder="Your name"
                   />
@@ -56,6 +117,9 @@ export default function ContactPage() {
                     type="email"
                     id="email"
                     name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-connection-blue focus:border-transparent"
                     placeholder="your@email.com"
                   />
@@ -68,6 +132,9 @@ export default function ContactPage() {
                     type="text"
                     id="subject"
                     name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    required
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-connection-blue focus:border-transparent"
                     placeholder="How can we help?"
                   />
@@ -79,6 +146,9 @@ export default function ContactPage() {
                   <textarea
                     id="message"
                     name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
                     rows={4}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-connection-blue focus:border-transparent"
                     placeholder="Your message..."
@@ -86,9 +156,10 @@ export default function ContactPage() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-connection-blue text-white py-3 rounded-full hover:bg-connection-blue-70 transition-colors"
+                  disabled={status === 'submitting'}
+                  className="w-full bg-connection-blue text-white py-3 rounded-full hover:bg-connection-blue-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Send Message
+                  {status === 'submitting' ? 'Sending...' : 'Send Message'}
                 </button>
               </form>
             </motion.div>

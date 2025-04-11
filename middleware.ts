@@ -93,6 +93,15 @@ export async function middleware(request: NextRequest) {
     console.error('Supabase middleware error:', error)
   }
 
+  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
+  const isApiAdminRoute = request.nextUrl.pathname.startsWith('/api/admin')
+
+  if ((isAdminRoute || isApiAdminRoute) && !token) {
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('callbackUrl', request.url)
+    return NextResponse.redirect(loginUrl)
+  }
+
   return response
 }
 
@@ -106,5 +115,7 @@ export const config = {
      * - public folder
      */
     '/((?!_next/static|_next/image|favicon.ico|public).*)',
+    '/admin/:path*',
+    '/api/admin/:path*',
   ],
 } 
