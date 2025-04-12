@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Brand Colors */
+  --networkli-orange: 241, 91, 39; /* #F15B27 */
+  --connection-blue: 54, 89, 168; /* #3659A8 */
+  
+  /* Brand color variations */
+  --networkli-orange-70: 244, 132, 93;
+  --networkli-orange-40: 247, 173, 147;
+  --connection-blue-70: 111, 137, 196;
+  --connection-blue-40: 169, 185, 223;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    @apply text-connection-blue bg-white;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-museo tracking-tight;
+  }
+
+  p, a {
+    @apply font-raleway;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-block bg-[#F15B27] text-white px-8 py-4 rounded-full text-lg font-medium hover:bg-[#F15B27]/90 transition-colors;
+  }
+
+  .btn-secondary {
+    @apply inline-block bg-connection-blue text-white px-8 py-4 rounded-full text-lg font-medium hover:bg-connection-blue/90 transition-colors;
+  }
+
+  .logo-container {
+    @apply relative w-40 h-12;
+  }
+
+  .logo-image {
+    @apply object-contain w-full h-full;
+    /* Preserve SVG colors */
+    filter: none;
+  }
+
+  /* Icon variant specific styles */
+  .logo-container.icon {
+    @apply w-12 h-12;
+  }
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+} 
