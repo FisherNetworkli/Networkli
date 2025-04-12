@@ -108,6 +108,19 @@ export const config = {
     '/api/admin/:path*',
     // Match API routes that need auth
     '/api/:path*',
+    // Match public pages that need cursor ignore
+    '/about',
+    '/blog',
+    '/contact',
+    '/careers',
+    '/pricing',
+    '/privacy',
+    '/terms',
+    '/cookies',
+    '/accessibility',
+    '/security',
+    '/roadmap',
+    '/download',
     // Exclude static files, public assets, and cursor-related paths
     '/((?!_next/static|_next/image|favicon.ico|public|cursor|.cursor).*)',
   ],

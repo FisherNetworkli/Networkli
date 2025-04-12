@@ -5,10 +5,11 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import Head from 'next/head'
 import Image from 'next/image'
+import PublicPageWrapper from './components/PublicPageWrapper'
 
 export default function Home() {
   return (
-    <>
+    <PublicPageWrapper>
       <Head>
         <title>Networkli - Professional Networking Reimagined for Introverts</title>
         <meta name="description" content="Connect with purpose, build meaningful professional relationships, and grow your career with Networkli. Our AI-powered platform helps introverts network comfortably and authentically." />
@@ -393,6 +394,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </>
+    </PublicPageWrapper>
   )
 } 
