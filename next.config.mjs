@@ -24,9 +24,8 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  // Enable HTTP/2 Server Push
+  // Enable experimental features
   experimental: {
-    serverActions: true,
     optimizeCss: true,
   },
   // Configure headers for security and performance
