@@ -7,7 +7,6 @@ import Footer from '../components/Footer'
 import Providers from '../components/Providers'
 import { getServerSession } from 'next-auth'
 import { authOptions } from './api/auth/[...nextauth]/auth'
-import { ReadOnlyBanner } from './components/ReadOnlyBanner'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -39,6 +38,7 @@ export const metadata: Metadata = {
       { url: '/logos/Applogo.png', sizes: '180x180' },
     ],
   },
+  manifest: '/manifest.json',
   openGraph: {
     title: 'Networkli - Professional Networking Reimagined for Introverts',
     description: 'Connect with purpose, build meaningful professional relationships, and grow your career with Networkli. Our AI-powered platform helps introverts network comfortably and authentically.',
@@ -84,7 +84,6 @@ export default async function RootLayout({
   children: React.ReactNode
 }) {
   const session = await getServerSession(authOptions)
-  const isReadOnlyMode = process.env.READONLY_MODE === 'true'
 
   return (
     <html lang="en" className={`${inter.variable} scroll-smooth antialiased`}>
@@ -113,8 +112,26 @@ export default async function RootLayout({
           }}
         />
         <script
+          type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: `window.__READONLY_MODE = ${isReadOnlyMode};`,
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "Networkli",
+              "url": "https://networkli.com",
+              "logo": "https://networkli.com/logos/networkli-logo-blue.png",
+              "sameAs": [
+                "https://twitter.com/networkli",
+                "https://www.linkedin.com/company/networkli",
+                "https://www.facebook.com/networkli"
+              ],
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+1-555-123-4567",
+                "contactType": "customer service",
+                "email": "support@networkli.com"
+              }
+            })
           }}
         />
       </head>
@@ -123,7 +140,6 @@ export default async function RootLayout({
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-networkli-orange-40/10 to-connection-blue-40/10 opacity-50" />
             <Navbar />
-            <ReadOnlyBanner />
             <main className="relative flex min-h-screen flex-col">
               {children}
             </main>

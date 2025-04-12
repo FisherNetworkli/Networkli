@@ -1,0 +1,32 @@
+{
+  "name": "Networkli",
+  "short_name": "Networkli",
+  "description": "Professional networking reimagined for introverts",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/logos/Applogo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logos/Applogo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "orientation": "portrait",
+  "categories": ["social", "productivity", "business"],
+  "screenshots": [
+    {
+      "src": "/logos/networkli-logo-blue.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Networkli Dashboard"
+    }
+  ]
+} 

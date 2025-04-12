@@ -4,34 +4,27 @@ import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
 export async function middleware(request: NextRequest) {
-  // Check if we're in readonly mode
-  const isReadOnlyMode = process.env.READONLY_MODE === 'true'
-  
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   })
 
-  // Check for NextAuth session
+  // Check for NextAuth session first
   const token = await getToken({ req: request })
   
-  // If we have a NextAuth session, use that
   if (token) {
-    // Add the user role to the request headers
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-user-role', token.role as string)
     
-    response = NextResponse.next({
+    return NextResponse.next({
       request: {
         headers: requestHeaders,
       },
     })
-    
-    return response
   }
 
-  // Otherwise, try Supabase
+  // If no NextAuth session, try Supabase
   try {
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -82,39 +75,20 @@ export async function middleware(request: NextRequest) {
     const { data: { session } } = await supabase.auth.getSession()
     
     if (session) {
-      // Add the user role to the request headers
       const requestHeaders = new Headers(request.headers)
       requestHeaders.set('x-user-role', session.user.user_metadata.role || 'USER')
       
-      response = NextResponse.next({
+      return NextResponse.next({
         request: {
           headers: requestHeaders,
         },
       })
-      
-      // If user is authenticated, allow all operations
-      return response
     }
   } catch (error) {
     console.error('Supabase middleware error:', error)
   }
 
-  // Block write operations on public routes in readonly mode
-  if (isReadOnlyMode) {
-    const isWriteOperation = request.method !== 'GET' && request.method !== 'HEAD' && request.method !== 'OPTIONS'
-    const isPublicApiRoute = request.nextUrl.pathname.startsWith('/api/') && 
-                            !request.nextUrl.pathname.startsWith('/api/auth') &&
-                            !request.nextUrl.pathname.startsWith('/api/admin')
-    
-    // Block write operations on public API routes
-    if (isWriteOperation && isPublicApiRoute) {
-      return new NextResponse(
-        JSON.stringify({ error: 'Site is currently in read-only mode' }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-      )
-    }
-  }
-
+  // Check for protected routes
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
   const isApiAdminRoute = request.nextUrl.pathname.startsWith('/api/admin')
 
@@ -129,17 +103,12 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!_next/static|_next/image|favicon.ico|public).*)',
+    // Match admin routes
     '/admin/:path*',
-    '/dashboard/:path*',
     '/api/admin/:path*',
-    '/api/:path*',  // Added to catch all API routes
+    // Match API routes that need auth
+    '/api/:path*',
+    // Exclude static files, public assets, and cursor-related paths
+    '/((?!_next/static|_next/image|favicon.ico|public|cursor|.cursor).*)',
   ],
 } 
