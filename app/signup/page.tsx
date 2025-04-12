@@ -1,34 +1,32 @@
-import React from 'react';
-import { getServerSession } from 'next-auth';
-import { redirect } from 'next/navigation';
-import SignupForm from './SignupForm';
-import { authOptions } from '../api/auth/[...nextauth]/auth';
+'use client';
 
-export default async function SignupPage() {
-  const session = await getServerSession(authOptions);
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { SignupFlow } from '../components/signup/SignupFlow';
 
-  if (session) {
-    // Redirect based on user role
-    if (session.user?.role === 'ADMIN') {
-      redirect('/admin');
-    } else {
-      redirect('/dashboard');
-    }
-  }
+export default function SignupPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const response = await fetch('/api/auth/check');
+      const data = await response.json();
+      
+      if (data.redirect) {
+        router.replace(data.redirect);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Join Networkli and start building meaningful connections
-          </p>
+    <div className="min-h-screen bg-gray-100 py-12">
+      <div className="container mx-auto px-4">
+        <div className="max-w-4xl mx-auto">
+          <SignupFlow />
         </div>
-        <SignupForm />
       </div>
     </div>
   );
-} 
+}

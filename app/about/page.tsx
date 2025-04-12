@@ -2,24 +2,31 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 
 export default function AboutPage() {
   return (
-    <div className="bg-white">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="pt-24 pb-12 bg-connection-blue text-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">Our Story</h1>
-            <p className="text-xl text-gray-100 max-w-3xl mx-auto">
-              Building a more meaningful way to connect professionally
+      <section className="relative h-[60vh] min-h-[400px]">
+        <Image
+          src="/images/about/20250412_1352_Team Spirit in Orange_simple_compose_01jrnrvkecf9h8jb72pf1zy3p5.png"
+          alt="Our team spirit"
+          fill
+          className="object-cover"
+          sizes="100vw"
+          priority
+        />
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 flex items-center">
+          <div className="container mx-auto px-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              About Networkli
+            </h1>
+            <p className="text-xl text-white/90 max-w-2xl">
+              Building meaningful professional connections for introverts and thoughtful networkers.
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 

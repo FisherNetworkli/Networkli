@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import Head from 'next/head'
+import Image from 'next/image'
 
 export default function Home() {
   return (
@@ -16,6 +17,20 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center bg-connection-blue text-white overflow-hidden" aria-label="Hero section">
+        <div className="absolute inset-0">
+          <Image
+            src="/images/heroes/20250412_1350_Sunset Connection_simple_compose_01jrnrr5q7e9pv6fsaq1qk01y4.png"
+            alt="Professional networking at sunset"
+            fill
+            sizes="100vw"
+            quality={90}
+            className="object-cover object-center"
+            priority
+            style={{
+              objectPosition: 'center 30%'
+            }}
+          />
+        </div>
         <div className="absolute inset-0 bg-gradient-to-b from-connection-blue/50 to-connection-blue-70/80 z-10" />
         <motion.div 
           className="relative z-20 text-center px-4 max-w-4xl mx-auto"
@@ -68,15 +83,19 @@ export default function Home() {
               </Link>
             </motion.div>
             <motion.div 
-              className="bg-gray-50 rounded-2xl h-96 flex items-center justify-center"
+              className="relative rounded-2xl h-96 overflow-hidden"
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <div className="text-center text-gray-500">
-                [Comfortable Networking Visualization]
-              </div>
+              <Image
+                src="/images/features/20250412_1519_Cozy Networking Lounge_simple_compose_01jrnxwpvafr2vv3b404hr8h2c.png"
+                alt="Comfortable networking environment"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
             </motion.div>
           </div>
         </div>
@@ -87,15 +106,19 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <motion.div 
-              className="bg-white rounded-2xl h-96 flex items-center justify-center order-2 md:order-1"
+              className="relative rounded-2xl h-96 overflow-hidden order-2 md:order-1"
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <div className="text-center text-gray-500">
-                [Smart Matching Visualization]
-              </div>
+              <Image
+                src="/images/features/20250412_1520_Perfect Match Found!_simple_compose_01jrnxy1f9ftkahscvm7fw5xj8.png"
+                alt="Smart matching visualization"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
             </motion.div>
             <motion.div 
               className="text-left order-1 md:order-2"
@@ -148,15 +171,19 @@ export default function Home() {
               </Link>
             </motion.div>
             <motion.div 
-              className="bg-gray-50 rounded-2xl h-96 flex items-center justify-center"
+              className="relative rounded-2xl h-96 overflow-hidden"
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <div className="text-center text-gray-500">
-                [Privacy Controls Visualization]
-              </div>
+              <Image
+                src="/images/features/20250412_1521_Cozy Security Workspace_simple_compose_01jrnxz6raeagvgh3esfn2x3v0.png"
+                alt="Privacy controls visualization"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
             </motion.div>
           </div>
         </div>
@@ -167,15 +194,19 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <motion.div 
-              className="bg-white rounded-2xl h-96 flex items-center justify-center order-2 md:order-1"
+              className="relative rounded-2xl h-96 overflow-hidden order-2 md:order-1"
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <div className="text-center text-gray-500">
-                [Meaningful Connections Visualization]
-              </div>
+              <Image
+                src="/images/features/20250412_1525_Cafe Connection Aligned_simple_compose_01jrny7phzeakvaw3xff9jn2aq.png"
+                alt="Meaningful connections visualization"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
             </motion.div>
             <motion.div 
               className="text-left order-1 md:order-2"

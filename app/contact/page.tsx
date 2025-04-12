@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -52,21 +53,27 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="bg-white">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="pt-24 pb-12 bg-connection-blue text-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">Get in Touch</h1>
-            <p className="text-xl text-gray-100 max-w-3xl mx-auto">
-              We're here to help you make meaningful connections
+      <section className="relative h-[40vh] min-h-[300px]">
+        <Image
+          src="/images/contact/20250412_1339_Joyful Message Sent_simple_compose_01jrnr3jwsfa6sefbmxw855dsz.png"
+          alt="Contact us"
+          fill
+          className="object-cover"
+          sizes="100vw"
+          priority
+        />
+        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 flex items-center">
+          <div className="container mx-auto px-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Get in Touch
+            </h1>
+            <p className="text-xl text-white/90 max-w-2xl">
+              We'd love to hear from you. Send us a message and we'll respond as soon as possible.
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 

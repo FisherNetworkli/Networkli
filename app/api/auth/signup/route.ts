@@ -1,54 +1,140 @@
+import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
-import { prisma } from '@/lib/prisma';
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const { email, password } = await req.json();
+    const supabase = createClient();
+    const json = await request.json();
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      title,
+      company,
+      industry,
+      experience,
+      skills,
+      bio,
+      interests,
+      lookingFor,
+      preferredIndustries,
+      preferredRoles,
+      linkedin,
+      github,
+      portfolio,
+      twitter,
+      profileVisibility,
+      emailNotifications,
+      marketingEmails,
+    } = json;
 
-    // Validate input
-    if (!email || !password) {
-      return NextResponse.json(
-        { message: 'Email and password are required' },
-        { status: 400 }
-      );
-    }
+    // Hash the password
+    const hashedPassword = await hash(password, 10);
 
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
-      return NextResponse.json(
-        { message: 'User already exists' },
-        { status: 400 }
-      );
-    }
-
-    // Hash password
-    const hashedPassword = await hash(password, 12);
-
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        role: 'USER', // Default role
+    // Create the user in Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password: hashedPassword,
+      options: {
+        data: {
+          firstName,
+          lastName,
+          profileVisibility,
+          emailNotifications,
+          marketingEmails,
+        },
       },
     });
 
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
+    if (authError) {
+      return NextResponse.json(
+        { error: authError.message },
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json(
-      { message: 'User created successfully', user: userWithoutPassword },
-      { status: 201 }
-    );
+    if (!authData.user) {
+      return NextResponse.json(
+        { error: 'User creation failed' },
+        { status: 400 }
+      );
+    }
+
+    // Create user preferences
+    const { error: preferencesError } = await supabase
+      .from('user_preferences')
+      .insert({
+        user_id: authData.user.id,
+        interests,
+        looking_for: lookingFor,
+        preferred_industries: preferredIndustries,
+        preferred_roles: preferredRoles,
+      });
+
+    if (preferencesError) {
+      // Rollback user creation
+      await supabase.auth.admin.deleteUser(authData.user.id);
+      return NextResponse.json(
+        { error: 'Failed to create user preferences' },
+        { status: 400 }
+      );
+    }
+
+    // Update professional info in profiles table
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        title,
+        company,
+        industry,
+        experience_level: experience,
+        bio,
+        linkedin_url: linkedin,
+        github_url: github,
+        portfolio_url: portfolio,
+        twitter_url: twitter,
+      })
+      .eq('id', authData.user.id);
+
+    if (profileError) {
+      // Rollback user creation and preferences
+      await supabase.auth.admin.deleteUser(authData.user.id);
+      return NextResponse.json(
+        { error: 'Failed to update profile information' },
+        { status: 400 }
+      );
+    }
+
+    // Add user skills
+    if (skills && skills.length > 0 && authData.user?.id) {
+      const skillInserts = skills.map((skill: string) => ({
+        profile_id: authData.user?.id,
+        skill_id: skill,
+        level: 'intermediate', // Default level, can be customized later
+        years_of_experience: 0, // Default value, can be customized later
+      }));
+
+      const { error: skillsError } = await supabase
+        .from('user_skills')
+        .insert(skillInserts);
+
+      if (skillsError) {
+        // Log the error but don't rollback (skills can be added later)
+        console.error('Failed to add user skills:', skillsError);
+      }
+    }
+
+    return NextResponse.json({
+      user: authData.user,
+      message: 'User created successfully',
+    });
   } catch (error) {
     console.error('Signup error:', error);
     return NextResponse.json(
-      { message: 'Something went wrong' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

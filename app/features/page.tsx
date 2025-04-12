@@ -2,248 +2,90 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
+
+const features = [
+  {
+    title: "AI-Powered Matchmaking",
+    description: "Our intelligent algorithm finds the perfect professional connections based on your interests, goals, and communication style.",
+    image: "/images/features/20250412_1530_Magical Matchmaking Moment_simple_compose_01jrnyf9nhe00tqq8s5kmtqyzd.png"
+  },
+  {
+    title: "Conversation Starters",
+    description: "Never worry about how to break the ice. Our platform provides personalized conversation starters based on shared interests.",
+    image: "/images/features/20250412_1530_Joyful Virtual Connection_simple_compose_01jrnygj5cerqbk7k4zs2x4a52.png"
+  },
+  {
+    title: "Event Integration",
+    description: "Seamlessly integrate with professional events and conferences to make meaningful connections in person.",
+    image: "/images/features/20250412_1532_Event Dashboard Magic_simple_compose_01jrnykb4kfevs7day7t71z5w0.png"
+  },
+  {
+    title: "Connection Analytics",
+    description: "Track your networking progress and gain insights into your professional relationships.",
+    image: "/images/features/20250412_1533_Joyful Data Review_simple_compose_01jrnypd2we5ztk3v5069bbs18.png"
+  },
+  {
+    title: "Enterprise API Access",
+    description: "Integrate Networkli's powerful networking features into your own platform with our enterprise API.",
+    image: "/images/features/20250412_1536_Tech Partnership Celebration_simple_compose_01jrnnyvbbdfwnvzzvwp8n5wzbx.png"
+  }
+]
 
 export default function FeaturesPage() {
   return (
-    <div className="bg-white">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="pt-24 pb-12 bg-connection-blue text-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">Platform Features</h1>
-            <p className="text-xl text-gray-100 max-w-3xl mx-auto">
-              Discover how our innovative features make networking more meaningful and comfortable
+      <section className="relative h-[50vh] min-h-[400px]">
+        <Image
+          src="/images/features/20250412_1519_Cozy Networking Lounge_simple_compose_01jrnxwpvafr2vv3b404hr8h2c.png"
+          alt="Feature highlights"
+          fill
+          className="object-cover"
+          sizes="100vw"
+          priority
+        />
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 flex items-center">
+          <div className="container mx-auto px-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Features
+            </h1>
+            <p className="text-xl text-white/90 max-w-2xl">
+              Discover how Networkli makes professional networking comfortable and meaningful.
             </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* AI Matching Algorithm */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="text-left"
-            >
-              <h2 className="text-4xl font-bold mb-6">AI-Powered Matching</h2>
-              <p className="text-xl text-gray-600 mb-8">
-                Our patent-pending AI algorithm analyzes multiple factors including personality, communication style, skills, and professional goals to create meaningful connections that matter.
-              </p>
-              <ul className="space-y-4">
-                <li className="flex items-start">
-                  <span className="text-networkli-orange mr-2">•</span>
-                  <span>Deep learning algorithm for precise compatibility matching</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-networkli-orange mr-2">•</span>
-                  <span>Personality-based networking recommendations</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-networkli-orange mr-2">•</span>
-                  <span>Skills and interests alignment for meaningful conversations</span>
-                </li>
-              </ul>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="bg-gray-100 rounded-2xl h-96 flex items-center justify-center"
-            >
-              <div className="text-center text-gray-500">
-                [AI Matching Visualization]
-              </div>
-            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Custom Conversation Starters */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="bg-gray-100 rounded-2xl h-96 flex items-center justify-center order-2 md:order-1"
-            >
-              <div className="text-center text-gray-500">
-                [Conversation Starters Visualization]
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="text-left order-1 md:order-2"
-            >
-              <h2 className="text-4xl font-bold mb-6">Smart Conversation Starters</h2>
-              <p className="text-xl text-gray-600 mb-8">
-                Break the ice naturally with AI-generated conversation starters based on shared interests and professional backgrounds.
-              </p>
-              <ul className="space-y-4">
-                <li className="flex items-start">
-                  <span className="text-networkli-orange mr-2">•</span>
-                  <span>Personalized conversation prompts</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-networkli-orange mr-2">•</span>
-                  <span>Industry-specific discussion topics</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-networkli-orange mr-2">•</span>
-                  <span>Common interest highlighting</span>
-                </li>
-              </ul>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Event Integration */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="text-left"
-            >
-              <h2 className="text-4xl font-bold mb-6">Event Integration</h2>
-              <p className="text-xl text-gray-600 mb-8">
-                Transform your events with our AI-driven compatibility matching for attendees, making networking more effective and enjoyable.
-              </p>
-              <ul className="space-y-4">
-                <li className="flex items-start">
-                  <span className="text-networkli-orange mr-2">•</span>
-                  <span>Pre-event matching for optimal connections</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-networkli-orange mr-2">•</span>
-                  <span>Real-time networking suggestions</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-networkli-orange mr-2">•</span>
-                  <span>Post-event connection nurturing</span>
-                </li>
-              </ul>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="bg-gray-100 rounded-2xl h-96 flex items-center justify-center"
-            >
-              <div className="text-center text-gray-500">
-                [Event Integration Visualization]
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Analytics Dashboard */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="bg-gray-100 rounded-2xl h-96 flex items-center justify-center order-2 md:order-1"
-            >
-              <div className="text-center text-gray-500">
-                [Analytics Dashboard Visualization]
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="text-left order-1 md:order-2"
-            >
-              <h2 className="text-4xl font-bold mb-6">Connection Analytics</h2>
-              <p className="text-xl text-gray-600 mb-8">
-                Track and optimize your networking effectiveness with detailed analytics and insights.
-              </p>
-              <ul className="space-y-4">
-                <li className="flex items-start">
-                  <span className="text-networkli-orange mr-2">•</span>
-                  <span>Connection quality metrics</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-networkli-orange mr-2">•</span>
-                  <span>Engagement level tracking</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-networkli-orange mr-2">•</span>
-                  <span>Network growth insights</span>
-                </li>
-              </ul>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* API Integration */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="text-left"
-            >
-              <h2 className="text-4xl font-bold mb-6">Enterprise API Access</h2>
-              <p className="text-xl text-gray-600 mb-8">
-                Integrate our powerful AI matching algorithm into your own platforms and applications.
-              </p>
-              <ul className="space-y-4">
-                <li className="flex items-start">
-                  <span className="text-networkli-orange mr-2">•</span>
-                  <span>RESTful API integration</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-networkli-orange mr-2">•</span>
-                  <span>Custom implementation support</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-networkli-orange mr-2">•</span>
-                  <span>Scalable solutions for any size organization</span>
-                </li>
-              </ul>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="bg-gray-100 rounded-2xl h-96 flex items-center justify-center"
-            >
-              <div className="text-center text-gray-500">
-                [API Integration Visualization]
-              </div>
-            </motion.div>
+      {/* Features Grid */}
+      <section className="py-24">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-12">
+            {features.map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                className="bg-white rounded-xl overflow-hidden shadow-lg"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <div className="relative h-64">
+                  <Image
+                    src={feature.image}
+                    alt={feature.title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-2xl font-bold mb-3">{feature.title}</h3>
+                  <p className="text-gray-600">{feature.description}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>

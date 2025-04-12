@@ -27,14 +27,14 @@ ALTER TABLE application_submissions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow admins to view all applications" ON application_submissions
     FOR SELECT
     TO authenticated
-    USING (auth.jwt() ->> 'email' IN (SELECT email FROM profiles WHERE role = 'ADMIN'));
+    USING (auth.jwt() ->> 'email' IN (SELECT email FROM profiles WHERE role = 'admin'::user_role));
 
 -- Allow admins to update applications
 CREATE POLICY "Allow admins to update applications" ON application_submissions
     FOR UPDATE
     TO authenticated
-    USING (auth.jwt() ->> 'email' IN (SELECT email FROM profiles WHERE role = 'ADMIN'))
-    WITH CHECK (auth.jwt() ->> 'email' IN (SELECT email FROM profiles WHERE role = 'ADMIN'));
+    USING (auth.jwt() ->> 'email' IN (SELECT email FROM profiles WHERE role = 'admin'::user_role))
+    WITH CHECK (auth.jwt() ->> 'email' IN (SELECT email FROM profiles WHERE role = 'admin'::user_role));
 
 -- Allow anyone to create applications
 CREATE POLICY "Allow anyone to create applications" ON application_submissions
