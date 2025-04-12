@@ -15,7 +15,19 @@ export default function ContactPage() {
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [error, setError] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const subjectOptions = [
+    { value: '', label: 'Select a subject' },
+    { value: 'general', label: 'General Inquiry' },
+    { value: 'support', label: 'Technical Support' },
+    { value: 'billing', label: 'Billing & Subscription' },
+    { value: 'enterprise', label: 'Enterprise Account' },
+    { value: 'algorithm', label: 'Algorithm Licensing' },
+    { value: 'partnership', label: 'Partnership Opportunities' },
+    { value: 'feedback', label: 'Product Feedback' },
+    { value: 'other', label: 'Other' }
+  ];
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -135,16 +147,20 @@ export default function ContactPage() {
                     <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
                       Subject
                     </label>
-                    <input
-                      type="text"
+                    <select
                       id="subject"
                       name="subject"
                       value={formData.subject}
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-connection-blue focus:border-transparent"
-                      placeholder="How can we help?"
-                    />
+                    >
+                      {subjectOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
@@ -198,31 +214,6 @@ export default function ContactPage() {
                         <p className="text-gray-600">Monday - Friday, 9am - 5pm EST</p>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-2xl font-bold mb-4">Enterprise Support</h3>
-                  <p className="text-gray-600 mb-4">
-                    Looking for enterprise solutions or API integration? Our sales team is ready to help.
-                  </p>
-                  <button className="bg-black text-white px-6 py-3 rounded-full hover:bg-gray-800 transition-colors">
-                    Contact Sales
-                  </button>
-                </div>
-
-                <div>
-                  <h3 className="text-2xl font-bold mb-4">Quick Links</h3>
-                  <div className="space-y-2">
-                    <p className="text-connection-blue hover:underline cursor-pointer">
-                      Documentation
-                    </p>
-                    <p className="text-connection-blue hover:underline cursor-pointer">
-                      API Reference
-                    </p>
-                    <p className="text-connection-blue hover:underline cursor-pointer">
-                      FAQs
-                    </p>
                   </div>
                 </div>
               </motion.div>
