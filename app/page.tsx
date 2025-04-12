@@ -89,13 +89,15 @@ export default function Home() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <Image
-                src="/images/features/20250412_1519_Cozy Networking Lounge_simple_compose_01jrnxwpvafr2vv3b404hr8h2c.png"
-                alt="Comfortable networking environment"
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
+              <div className="relative h-64 md:h-80 rounded-xl overflow-hidden">
+                <Image
+                  src="https://networkly.supabase.co/storage/v1/object/public/images/features/20250412_1519_Cozy Networking Lounge_simple_compose_01jrnxwpvafr2vv3b404hr8h2c.png"
+                  alt="Networking Made Comfortable"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+              </div>
             </motion.div>
           </div>
         </div>
@@ -112,13 +114,15 @@ export default function Home() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <Image
-                src="/images/features/20250412_1520_Perfect Match Found!_simple_compose_01jrnxy1f9ftkahscvm7fw5xj8.png"
-                alt="Smart matching visualization"
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
+              <div className="relative h-64 md:h-80 rounded-xl overflow-hidden">
+                <Image
+                  src="https://networkly.supabase.co/storage/v1/object/public/images/features/20250412_1520_Perfect Match Found!_simple_compose_01jrnxy1f9ftkahscvm7fw5xj8.png"
+                  alt="Smart Matching"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+              </div>
             </motion.div>
             <motion.div 
               className="text-left order-1 md:order-2"
@@ -177,13 +181,15 @@ export default function Home() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <Image
-                src="/images/features/20250412_1521_Cozy Security Workspace_simple_compose_01jrnxz6raeagvgh3esfn2x3v0.png"
-                alt="Privacy controls visualization"
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
+              <div className="relative h-64 md:h-80 rounded-xl overflow-hidden">
+                <Image
+                  src="https://networkly.supabase.co/storage/v1/object/public/images/features/20250412_1521_Cozy Security Workspace_simple_compose_01jrnxz6raeagvgh3esfn2x3v0.png"
+                  alt="Privacy First"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+              </div>
             </motion.div>
           </div>
         </div>
@@ -200,13 +206,15 @@ export default function Home() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <Image
-                src="/images/features/20250412_1525_Cafe Connection Aligned_simple_compose_01jrny7phzeakvaw3xff9jn2aq.png"
-                alt="Meaningful connections visualization"
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
+              <div className="relative h-64 md:h-80 rounded-xl overflow-hidden">
+                <Image
+                  src="https://networkly.supabase.co/storage/v1/object/public/images/features/20250412_1525_Cafe Connection Aligned_simple_compose_01jrny7phzeakvaw3xff9jn2aq.png"
+                  alt="Meaningful Connections"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+              </div>
             </motion.div>
             <motion.div 
               className="text-left order-1 md:order-2"
