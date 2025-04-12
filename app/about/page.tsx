@@ -10,8 +10,8 @@ export default function AboutPage() {
       {/* Hero Section */}
       <section className="relative h-[60vh] min-h-[400px]">
         <Image
-          src="/images/about/20250412_1352_Team Spirit in Orange_simple_compose_01jrnrvkecf9h8jb72pf1zy3p5.png"
-          alt="Our team spirit"
+          src="https://networkly.supabase.co/storage/v1/object/public/images/about/20250412_1352_Team Spirit in Orange_simple_compose_01jrnrvkecf9h8jb72pf1zy3p5.png"
+          alt="Our team"
           fill
           className="object-cover"
           sizes="100vw"

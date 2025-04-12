@@ -57,7 +57,7 @@ export default function ContactPage() {
       {/* Hero Section */}
       <section className="relative h-[40vh] min-h-[300px]">
         <Image
-          src="/images/contact/20250412_1339_Joyful Message Sent_simple_compose_01jrnr3jwsfa6sefbmxw855dsz.png"
+          src="https://networkly.supabase.co/storage/v1/object/public/images/contact/20250412_1339_Joyful Message Sent_simple_compose_01jrnr3jwsfa6sefbmxw855dsz.png"
           alt="Contact us"
           fill
           className="object-cover"
