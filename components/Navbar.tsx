@@ -9,6 +9,10 @@ import Logo from './Logo'
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
+  const handleLinkClick = () => {
+    setIsMobileMenuOpen(false)
+  }
+
   return (
     <header 
       className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm"
@@ -108,44 +112,51 @@ export default function Navbar() {
             </div>
             <Link 
               href="/features" 
+              onClick={handleLinkClick}
               className="block px-4 py-2.5 text-base font-medium text-gray-600 hover:text-connection-blue hover:bg-gray-50 rounded-lg transition-colors"
             >
               Features
             </Link>
             <Link 
               href="/pricing" 
+              onClick={handleLinkClick}
               className="block px-4 py-2.5 text-base font-medium text-gray-600 hover:text-connection-blue hover:bg-gray-50 rounded-lg transition-colors"
             >
               Pricing
             </Link>
             <Link 
               href="/blog" 
+              onClick={handleLinkClick}
               className="block px-4 py-2.5 text-base font-medium text-gray-600 hover:text-connection-blue hover:bg-gray-50 rounded-lg transition-colors"
             >
               Blog
             </Link>
             <Link 
               href="/about" 
+              onClick={handleLinkClick}
               className="block px-4 py-2.5 text-base font-medium text-gray-600 hover:text-connection-blue hover:bg-gray-50 rounded-lg transition-colors"
             >
               About
             </Link>
             <Link 
               href="/contact" 
+              onClick={handleLinkClick}
               className="block px-4 py-2.5 text-base font-medium text-gray-600 hover:text-connection-blue hover:bg-gray-50 rounded-lg transition-colors"
             >
               Contact
             </Link>
-            <div className="pt-4 space-y-4">
+            <div className="pt-4 space-y-2">
               <Link 
                 href="/login" 
-                className="block px-4 py-2.5 text-base font-medium text-gray-600 hover:text-connection-blue hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={handleLinkClick}
+                className="block w-full text-center px-4 py-2.5 text-base font-medium text-gray-600 hover:text-connection-blue hover:bg-gray-50 rounded-lg transition-colors"
               >
                 Log in
               </Link>
               <Link 
                 href="/signup" 
-                className="block w-full px-4 py-3 text-base font-medium text-center text-white bg-networkli-orange hover:bg-networkli-orange-70 rounded-full shadow-sm transition-colors"
+                onClick={handleLinkClick}
+                className="block w-full text-center px-4 py-2.5 text-base font-medium bg-connection-blue text-white hover:bg-connection-blue-70 rounded-lg transition-colors"
               >
                 Sign up
               </Link>
