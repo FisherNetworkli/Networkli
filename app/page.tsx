@@ -20,12 +20,31 @@ export default function Home() {
       <section className="relative h-screen flex items-center justify-center bg-connection-blue text-white overflow-hidden" aria-label="Hero section">
         <div className="absolute inset-0">
           <Image
+            src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images//20250413_1100_Social%20Media%20Interaction_remix_01jrr1d209e1ztp40mbsry0m56.png"
+            alt="Professional networking at sunset"
+            fill
+            sizes="(max-width: 768px) 100vw, 100vw"
+            quality={90}
+            className="object-cover object-center md:hidden"
+            priority
+            style={{
+              objectPosition: 'center 30%'
+            }}
+            onError={(e) => {
+              console.error('Error loading hero image:', e);
+              // Fallback to a solid color background if image fails to load
+              e.currentTarget.style.backgroundColor = '#1e40af';
+            }}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkLzYvLy0vLi44QjY4OEI4Li8vQUVFRUVFRUVFRUVFRUVFRUVFRUX/2wBDAR0XFyAeIBogHiAeIBUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUX/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+          />
+          <Image
             src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images//20250413_1050_Social%20Gathering%20Animation_remix_01jrr0tkmeeaq9k1a9ez9qztyr.png"
             alt="Professional networking at sunset"
             fill
-            sizes="100vw"
+            sizes="(min-width: 769px) 100vw, 100vw"
             quality={90}
-            className="object-cover object-center"
+            className="object-cover object-center hidden md:block"
             priority
             style={{
               objectPosition: 'center 30%'
