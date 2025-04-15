@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { prisma } from '../../../../lib/prisma';
-import { authOptions } from '@/app/api/auth/[...nextauth]/auth';
+import { prisma } from '@/lib/prisma';
+import { authOptions } from '@/lib/auth';
 
 // GET /api/blog/[slug] - Get a single blog post
 export async function GET(
@@ -14,7 +14,7 @@ export async function GET(
         slug: params.slug,
       },
       include: {
-        user: {
+        User: {
           select: {
             name: true,
             email: true,
