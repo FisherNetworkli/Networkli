@@ -1,5 +1,4 @@
 import { prisma } from '../lib/prisma';
-import { ContentRecommender } from '../ml/models/content_recommender';
 import { Redis } from 'ioredis';
 import { logger } from '../lib/logger';
 
@@ -29,12 +28,10 @@ interface User {
 }
 
 export class ContentService {
-  private model: ContentRecommender;
   private redis: Redis;
   private readonly CACHE_TTL = 3600; // 1 hour
 
   constructor() {
-    this.model = new ContentRecommender();
     this.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
   }
 
@@ -67,32 +64,16 @@ export class ContentService {
           status: 'PUBLISHED',
           publishedAt: { lte: new Date() }
         },
-        orderBy: { publishedAt: 'desc' }
+        orderBy: { publishedAt: 'desc' },
+        take: limit
       });
 
-      // Score content relevance
-      const scoredContent = await Promise.all(
-        content.map(async (item: Content) => {
-          const [score, isRelevant] = await this.model.predict(
-            item.content,
-            interests
-          );
-
-          return {
-            ...item,
-            relevanceScore: score,
-            isRelevant
-          };
-        })
-      );
-
-      // Filter and sort by relevance
-      const recommendations = scoredContent
-        .filter((item: Content) => item.isRelevant)
-        .sort((a: Content, b: Content) => 
-          (b.relevanceScore || 0) - (a.relevanceScore || 0)
-        )
-        .slice(0, limit);
+      // For now, return all content without ML scoring
+      const recommendations = content.map(item => ({
+        ...item,
+        relevanceScore: 1,
+        isRelevant: true
+      }));
 
       // Cache results
       await this.redis.setex(
