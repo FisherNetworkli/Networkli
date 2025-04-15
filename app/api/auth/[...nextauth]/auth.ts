@@ -1,90 +1,60 @@
-import { NextAuthOptions } from 'next-auth';
+import { AuthOptions, User } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
-import { Role } from '@prisma/client';
+import { createClient } from '@supabase/supabase-js';
 
-declare module 'next-auth' {
-  interface User {
-    id: string;
-    role: Role;
-  }
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-  interface Session {
-    user: User & {
-      id: string;
-      role: Role;
-    };
-  }
-}
-
-export const authOptions: NextAuthOptions = {
+export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
-      name: 'credentials',
+      name: 'Credentials',
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<User | null> {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Invalid credentials');
+          throw new Error('Missing credentials');
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
+        const { data: { user }, error } = await supabase.auth.signInWithPassword({
+          email: credentials.email,
+          password: credentials.password,
         });
 
-        if (!user || !user.password) {
-          throw new Error('Invalid credentials');
+        if (error) {
+          throw new Error(error.message);
         }
 
-        const isCorrectPassword = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
-
-        if (!isCorrectPassword) {
-          throw new Error('Invalid credentials');
+        if (!user) {
+          throw new Error('No user found');
         }
 
         return {
           id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        };
-      },
-    }),
-  ],
-  session: {
-    strategy: 'jwt',
-  },
-  pages: {
-    signIn: '/login',
-  },
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        return {
-          ...token,
-          id: user.id,
-          role: user.role,
+          email: user.email!,
+          name: user.user_metadata?.full_name || null,
+          role: user.user_metadata?.role || 'user'
         };
       }
-      return token;
-    },
-    async session({ session, token }) {
-      return {
-        ...session,
-        user: {
-          ...session.user,
-          id: token.id as string,
-          role: token.role as Role,
-        },
-      };
-    },
+    })
+  ],
+  session: {
+    strategy: 'jwt'
   },
+  callbacks: {
+    async session({ session, token }) {
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
+      }
+      return session;
+    }
+  },
+  pages: {
+    signIn: '/signin',
+    error: '/signin?error=AuthenticationFailed'
+  }
 }; 
