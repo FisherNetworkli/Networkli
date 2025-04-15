@@ -12,8 +12,8 @@ export default function AboutPage() {
         {/* Hero Section */}
         <section className="relative h-[60vh] min-h-[400px]">
           <Image
-            src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images//20250412_1352_Team%20Spirit%20in%20Orange_simple_compose_01jrnrvkecf9h8jb72pf1zy3p5.png"
-            alt="Our Team"
+            src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/sign/images/20250412_1352_Team%20Spirit%20in%20Orange_simple_compose_01jrnrvkecf9h8jb72pf1zy3p5.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzEyZTI0ZDgwLTAxNjItNDVmZS04NWE2LTM0NWE0Mjk5MGJlMiJ9.eyJ1cmwiOiJpbWFnZXMvMjAyNTA0MTJfMTM1Ml9UZWFtIFNwaXJpdCBpbiBPcmFuZ2Vfc2ltcGxlX2NvbXBvc2VfMDFqcm5ydmtlY2Y5aDhqYjcycGYxenkzcDUucG5nIiwiaWF0IjoxNzQ0NzMzNTY5LCJleHAiOjQ4NjY3OTc1Njl9.81veogv5tmM1BQGy2qUXRp1qfepH4jZwIEPHDcTswgo"
+            alt="About Us"
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 50vw"

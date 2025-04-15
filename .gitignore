@@ -55,10 +55,11 @@ coverage/
 
 # testing
 /coverage
+/.nyc_output
 
 # next.js
 .next/
-out/
+/out/
 
 # production
 /build
@@ -66,6 +67,8 @@ out/
 # misc
 .DS_Store
 *.pem
+.env*
+!.env.example
 
 # debug
 npm-debug.log*
@@ -74,7 +77,6 @@ yarn-error.log*
 
 # local env files
 .env*.local
-.env
 
 # vercel
 .vercel
@@ -143,3 +145,6 @@ networkli-mobile/.env.*
 # Logs
 logs/
 *.log
+
+# Cursor
+.cursor/

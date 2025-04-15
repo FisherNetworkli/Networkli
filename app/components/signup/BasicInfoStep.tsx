@@ -83,6 +83,23 @@ export function BasicInfoStep() {
           <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
         )}
       </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="zipCode">ZIP Code</Label>
+        <Input
+          id="zipCode"
+          {...register('zipCode', { 
+            required: 'ZIP code is required',
+            pattern: {
+              value: /^\d{5}$/,
+              message: 'ZIP code must be 5 digits'
+            }
+          })}
+        />
+        {errors.zipCode && (
+          <p className="text-sm text-red-500">{errors.zipCode.message}</p>
+        )}
+      </div>
     </div>
   );
 }

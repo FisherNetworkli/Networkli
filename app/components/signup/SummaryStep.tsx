@@ -8,7 +8,9 @@ import {
   User, 
   Briefcase, 
   Heart, 
-  Link
+  Link,
+  Target,
+  Users
 } from 'lucide-react';
 
 type Field = {
@@ -38,32 +40,27 @@ export function SummaryStep() {
         { label: 'Company', value: formData.company },
         { label: 'Industry', value: formData.industry },
         { label: 'Experience', value: formData.experience },
-        { 
-          label: 'Skills', 
-          value: formData.skills?.join(', '),
-          isList: true 
-        },
+        { label: 'Skills', value: formData.skills?.join(', '), isList: true },
+        { label: 'Bio', value: formData.bio },
+        { label: 'Expertise', value: formData.expertise },
+        { label: 'Needs', value: formData.needs },
+        { label: 'Meaningful Goal', value: formData.meaningfulGoal },
       ],
     },
     {
-      title: 'Preferences',
-      icon: Heart,
+      title: 'Values & Goals',
+      icon: Target,
       fields: [
-        { 
-          label: 'Interests', 
-          value: formData.interests?.join(', '),
-          isList: true 
-        },
-        { 
-          label: 'Looking For', 
-          value: formData.lookingFor?.join(', '),
-          isList: true 
-        },
-        { 
-          label: 'Preferred Industries', 
-          value: formData.preferredIndustries?.join(', '),
-          isList: true 
-        },
+        { label: 'Core Values', value: formData.values?.join(', '), isList: true },
+        { label: 'Goals', value: formData.goals?.join(', '), isList: true },
+      ],
+    },
+    {
+      title: 'Interests & Networking',
+      icon: Users,
+      fields: [
+        { label: 'Topics of Interest', value: formData.interests?.join(', '), isList: true },
+        { label: 'Preferred Ways to Connect', value: formData.networkingStyle?.join(', '), isList: true },
       ],
     },
     {

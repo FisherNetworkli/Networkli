@@ -71,7 +71,7 @@ export default function ContactPage() {
         {/* Hero Section */}
         <section className="relative h-[40vh] min-h-[300px]">
           <Image
-            src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images//20250412_1339_Joyful%20Message%20Sent_simple_compose_01jrnr3jwsfa6sefbmxw855dsz.png"
+            src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/sign/images/20250412_1339_Joyful%20Message%20Sent_simple_compose_01jrnr3jwsfa6sefbmxw855dsz.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzEyZTI0ZDgwLTAxNjItNDVmZS04NWE2LTM0NWE0Mjk5MGJlMiJ9.eyJ1cmwiOiJpbWFnZXMvMjAyNTA0MTJfMTMzOV9Kb3lmdWwgTWVzc2FnZSBTZW50X3NpbXBsZV9jb21wb3NlXzAxanJucjNqd3NmYTZzZWZibXh3ODU1ZHN6LnBuZyIsImlhdCI6MTc0NDczMjQ5MywiZXhwIjo0ODY2Nzk2NDkzfQ.gFfVGkkIHVYNiKui4MRPIVd-lD3hDjtPebwqvkBQFLQ"
             alt="Contact Us"
             fill
             className="object-cover"

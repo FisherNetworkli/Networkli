@@ -1,127 +1,69 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
+import { NextRequestWithAuth } from 'next-auth/middleware'
 
-export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
+// Define public paths that don't require authentication
+const publicPaths = [
+  '/',
+  '/about',
+  '/features',
+  '/pricing',
+  '/blog',
+  '/signin',
+  '/signup',
+  '/api/auth',
+  '/_next',
+  '/favicon.ico',
+  '/images',
+  '/fonts',
+  '/styles'
+]
 
-  // Check for NextAuth session first
-  const token = await getToken({ req: request })
+// Define auth paths that should redirect to dashboard if already authenticated
+const authPaths = ['/signin', '/signup']
+
+// Define protected paths that require authentication
+const protectedPaths = ['/dashboard', '/profile', '/settings']
+
+export default async function middleware(req: NextRequestWithAuth) {
+  const token = await getToken({ req })
+  const { pathname } = req.nextUrl
+
+  // Check if the path is a public path (no auth required)
+  const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
   
-  if (token) {
-    const requestHeaders = new Headers(request.headers)
-    requestHeaders.set('x-user-role', token.role as string)
-    
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    })
+  // Check if the path is an auth page (signin/signup)
+  const isAuthPage = authPaths.some(path => pathname.startsWith(path))
+
+  // Check if the path is a protected route
+  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path))
+
+  // If user is authenticated and tries to access auth pages, redirect to dashboard
+  if (token && isAuthPage) {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
-  // If no NextAuth session, try Supabase
-  try {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return request.cookies.get(name)?.value
-          },
-          set(name: string, value: string, options: any) {
-            request.cookies.set({
-              name,
-              value,
-              ...options,
-            })
-            response = NextResponse.next({
-              request: {
-                headers: request.headers,
-              },
-            })
-            response.cookies.set({
-              name,
-              value,
-              ...options,
-            })
-          },
-          remove(name: string, options: any) {
-            request.cookies.set({
-              name,
-              value: '',
-              ...options,
-            })
-            response = NextResponse.next({
-              request: {
-                headers: request.headers,
-              },
-            })
-            response.cookies.set({
-              name,
-              value: '',
-              ...options,
-            })
-          },
-        },
-      }
-    )
-
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    if (session) {
-      const requestHeaders = new Headers(request.headers)
-      requestHeaders.set('x-user-role', session.user.user_metadata.role || 'USER')
-      
-      return NextResponse.next({
-        request: {
-          headers: requestHeaders,
-        },
-      })
-    }
-  } catch (error) {
-    console.error('Supabase middleware error:', error)
+  // If user is not authenticated and tries to access protected routes, redirect to signin
+  if (!token && isProtectedPath) {
+    const signInUrl = new URL('/signin', req.url)
+    signInUrl.searchParams.set('callbackUrl', pathname)
+    return NextResponse.redirect(signInUrl)
   }
 
-  // Check for protected routes
-  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
-  const isApiAdminRoute = request.nextUrl.pathname.startsWith('/api/admin')
-
-  if ((isAdminRoute || isApiAdminRoute) && !token) {
-    const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('callbackUrl', request.url)
-    return NextResponse.redirect(loginUrl)
-  }
-
-  return response
+  // Allow access to all other routes
+  return NextResponse.next()
 }
 
+// Configure which paths the middleware should run on
 export const config = {
   matcher: [
-    // Match admin routes
-    '/admin/:path*',
-    '/api/admin/:path*',
-    // Match API routes that need auth
-    '/api/:path*',
-    // Match public pages that need cursor ignore
-    '/about',
-    '/blog',
-    '/contact',
-    '/careers',
-    '/pricing',
-    '/privacy',
-    '/terms',
-    '/cookies',
-    '/accessibility',
-    '/security',
-    '/roadmap',
-    '/download',
-    // Exclude static files, public assets, and cursor-related paths
-    '/((?!_next/static|_next/image|favicon.ico|public|cursor|.cursor).*)',
-  ],
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api/auth (auth API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api/auth|_next/static|_next/image|favicon.ico).*)'
+  ]
 } 

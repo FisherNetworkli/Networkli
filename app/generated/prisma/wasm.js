@@ -132,6 +132,49 @@ exports.Prisma.AccountScalarFieldEnum = {
   session_state: 'session_state'
 };
 
+exports.Prisma.BlogPostScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  slug: 'slug',
+  content: 'content',
+  excerpt: 'excerpt',
+  image: 'image',
+  category: 'category',
+  tags: 'tags',
+  readTime: 'readTime',
+  author: 'author',
+  date: 'date',
+  published: 'published',
+  userId: 'userId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ContactSubmissionScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  subject: 'subject',
+  message: 'message',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.JobApplicationScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  position: 'position',
+  experience: 'experience',
+  resume: 'resume',
+  coverLetter: 'coverLetter',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SessionScalarFieldEnum = {
   id: 'id',
   sessionToken: 'sessionToken',
@@ -155,49 +198,6 @@ exports.Prisma.VerificationTokenScalarFieldEnum = {
   expires: 'expires'
 };
 
-exports.Prisma.BlogPostScalarFieldEnum = {
-  id: 'id',
-  title: 'title',
-  slug: 'slug',
-  content: 'content',
-  excerpt: 'excerpt',
-  image: 'image',
-  category: 'category',
-  tags: 'tags',
-  readTime: 'readTime',
-  author: 'author',
-  date: 'date',
-  published: 'published',
-  userId: 'userId',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.JobApplicationScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  email: 'email',
-  phone: 'phone',
-  position: 'position',
-  experience: 'experience',
-  resume: 'resume',
-  coverLetter: 'coverLetter',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.ContactSubmissionScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  email: 'email',
-  subject: 'subject',
-  message: 'message',
-  status: 'status',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -212,9 +212,10 @@ exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
-exports.Role = exports.$Enums.Role = {
-  USER: 'USER',
-  ADMIN: 'ADMIN'
+exports.ContactStatus = exports.$Enums.ContactStatus = {
+  UNREAD: 'UNREAD',
+  READ: 'READ',
+  REPLIED: 'REPLIED'
 };
 
 exports.ApplicationStatus = exports.$Enums.ApplicationStatus = {
@@ -224,20 +225,19 @@ exports.ApplicationStatus = exports.$Enums.ApplicationStatus = {
   REJECTED: 'REJECTED'
 };
 
-exports.ContactStatus = exports.$Enums.ContactStatus = {
-  UNREAD: 'UNREAD',
-  READ: 'READ',
-  REPLIED: 'REPLIED'
+exports.Role = exports.$Enums.Role = {
+  USER: 'USER',
+  ADMIN: 'ADMIN'
 };
 
 exports.Prisma.ModelName = {
   Account: 'Account',
+  BlogPost: 'BlogPost',
+  ContactSubmission: 'ContactSubmission',
+  JobApplication: 'JobApplication',
   Session: 'Session',
   User: 'User',
-  VerificationToken: 'VerificationToken',
-  BlogPost: 'BlogPost',
-  JobApplication: 'JobApplication',
-  ContactSubmission: 'ContactSubmission'
+  VerificationToken: 'VerificationToken'
 };
 
 /**

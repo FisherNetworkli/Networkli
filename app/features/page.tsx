@@ -62,7 +62,7 @@ export default function FeaturesPage() {
               className="relative h-96 rounded-2xl overflow-hidden"
             >
               <Image
-                src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images//20250412_1530_Magical%20Matchmaking%20Moment_simple_compose_01jrnyf9nhe00tqq8s5kmtqyzd.png"
+                src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/sign/images/20250412_1530_Magical%20Matchmaking%20Moment_simple_compose_01jrnyf9nhe00tqq8s5kmtqyzd.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzEyZTI0ZDgwLTAxNjItNDVmZS04NWE2LTM0NWE0Mjk5MGJlMiJ9.eyJ1cmwiOiJpbWFnZXMvMjAyNTA0MTJfMTUzMF9NYWdpY2FsIE1hdGNobWFraW5nIE1vbWVudF9zaW1wbGVfY29tcG9zZV8wMWpybnlmOW5oZTAwdHFxOHM1a210cXl6ZC5wbmciLCJpYXQiOjE3NDQ3MzM4MDAsImV4cCI6NDg2Njc5NzgwMH0.HQwfWfAd2xrtygeSAPwLdNpoYefiHgIYRJd8zTZHzNE"
                 alt="AI-Powered Matching"
                 fill
                 className="object-cover"
@@ -85,8 +85,8 @@ export default function FeaturesPage() {
               className="relative h-96 rounded-2xl overflow-hidden order-2 md:order-1"
             >
               <Image
-                src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images//20250412_1530_Joyful%20Virtual%20Connection_simple_compose_01jrnygj5cerqbk7k4zs2x4a52.png"
-                alt="Conversation Starters"
+                src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/sign/images/20250412_1530_Joyful%20Virtual%20Connection_simple_compose_01jrnygj5cerqbk7k4zs2x4a52.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzEyZTI0ZDgwLTAxNjItNDVmZS04NWE2LTM0NWE0Mjk5MGJlMiJ9.eyJ1cmwiOiJpbWFnZXMvMjAyNTA0MTJfMTUzMF9Kb3lmdWwgVmlydHVhbCBDb25uZWN0aW9uX3NpbXBsZV9jb21wb3NlXzAxanJueWdqNWNlcnFiazdrNHpzMng0YTUyLnBuZyIsImlhdCI6MTc0NDczMzc4MywiZXhwIjo0ODY2Nzk3NzgzfQ.lGTfGSa03WdfbRON7PYdfXn8DGCyQV6Hqt1d5PD8_hU"
+                alt="Smart Conversation Starters"
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 50vw"
@@ -160,7 +160,7 @@ export default function FeaturesPage() {
               className="relative h-96 rounded-2xl overflow-hidden"
             >
               <Image
-                src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images//20250412_1532_Event%20Dashboard%20Magic_simple_compose_01jrnykb4kfevs7day7t71z5w0.png"
+                src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/sign/images/20250412_1532_Event%20Dashboard%20Magic_simple_compose_01jrnykb4kfevs7day7t71z5w0.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzEyZTI0ZDgwLTAxNjItNDVmZS04NWE2LTM0NWE0Mjk5MGJlMiJ9.eyJ1cmwiOiJpbWFnZXMvMjAyNTA0MTJfMTUzMl9FdmVudCBEYXNoYm9hcmQgTWFnaWNfc2ltcGxlX2NvbXBvc2VfMDFqcm55a2I0a2ZldnM3ZGF5N3Q3MXo1dzAucG5nIiwiaWF0IjoxNzQ0NzMzODQyLCJleHAiOjQ4NjY3OTc4NDJ9.8WQgxCMPox_xD59ab9EYZtBAp5cjIvNpoKbFSLe2238"
                 alt="Event Integration"
                 fill
                 className="object-cover"
@@ -183,7 +183,7 @@ export default function FeaturesPage() {
               className="relative h-96 rounded-2xl overflow-hidden order-2 md:order-1"
             >
               <Image
-                src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images//20250412_1533_Joyful%20Data%20Review_simple_compose_01jrnypd2we5ztk3v5069bbs18.png"
+                src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/sign/images/20250412_1533_Joyful%20Data%20Review_simple_compose_01jrnypd2we5ztk3v5069bbs18.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzEyZTI0ZDgwLTAxNjItNDVmZS04NWE2LTM0NWE0Mjk5MGJlMiJ9.eyJ1cmwiOiJpbWFnZXMvMjAyNTA0MTJfMTUzM19Kb3lmdWwgRGF0YSBSZXZpZXdfc2ltcGxlX2NvbXBvc2VfMDFqcm55cGQyd2U1enRrM3Y1MDY5YmJzMTgucG5nIiwiaWF0IjoxNzQ0NzMzODU3LCJleHAiOjQ4NjY3OTc4NTd9.JN5b1yf76EXUrb7JuAHA7n0-2M--CQnURv5EblQlWNg"
                 alt="Connection Analytics"
                 fill
                 className="object-cover"
@@ -258,7 +258,7 @@ export default function FeaturesPage() {
               className="relative h-96 rounded-2xl overflow-hidden"
             >
               <Image
-                src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images/20250412_1536_Tech%20Partnership%20Celebration_simple_compose_01jrnyvbbdfwnvzzvwp8n5wzbx.png"
+                src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/sign/images/20250412_1536_Tech%20Partnership%20Celebration_simple_compose_01jrnyvbbdfwnvzzvwp8n5wzbx.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzEyZTI0ZDgwLTAxNjItNDVmZS04NWE2LTM0NWE0Mjk5MGJlMiJ9.eyJ1cmwiOiJpbWFnZXMvMjAyNTA0MTJfMTUzNl9UZWNoIFBhcnRuZXJzaGlwIENlbGVicmF0aW9uX3NpbXBsZV9jb21wb3NlXzAxanJueXZiYmRmd252enp2d3A4bjV3emJ4LnBuZyIsImlhdCI6MTc0NDczMzg3MCwiZXhwIjo0ODY2Nzk3ODcwfQ.dc6ti_sEGI3LvcorxpVwnf0gOYkhxOQzp8ozM2-cOQc"
                 alt="Enterprise API Access"
                 fill
                 className="object-cover"

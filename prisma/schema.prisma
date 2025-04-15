@@ -1,72 +1,40 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  output          = "../app/generated/prisma"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("SUPABASE_DB_URL")
+  url      = env("DATABASE_URL")
+  schemas  = ["auth", "public"]
 }
 
 model Account {
-  id                String  @id @default(cuid())
+  id                String  @id
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          Role      @default(USER)
-  accounts      Account[]
-  sessions      Session[]
-  blogPosts     BlogPost[]
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
+  @@schema("public")
 }
 
 model BlogPost {
-  id        String   @id @default(cuid())
+  id        String   @id
   title     String
   slug      String   @unique
-  content   String   @db.Text
-  excerpt   String   @db.Text
+  content   String
+  excerpt   String
   image     String
   category  String
   tags      String[]
@@ -75,39 +43,74 @@ model BlogPost {
   date      DateTime @default(now())
   published Boolean  @default(false)
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime
+  User      User     @relation(fields: [userId], references: [id])
+
+  @@schema("public")
+}
+
+model ContactSubmission {
+  id        String        @id
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    ContactStatus @default(UNREAD)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime
+
+  @@schema("public")
 }
 
 model JobApplication {
-  id          String   @id @default(cuid())
+  id          String            @id
   name        String
   email       String
   phone       String
   position    String
-  experience  String   @db.Text
+  experience  String
   resume      String
-  coverLetter String?  @db.Text
+  coverLetter String?
   status      ApplicationStatus @default(PENDING)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime
+
+  @@schema("public")
 }
 
-model ContactSubmission {
-  id        String   @id @default(cuid())
-  name      String
-  email     String
-  subject   String
-  message   String   @db.Text
-  status    ContactStatus @default(UNREAD)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Session {
+  id           String   @id
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@schema("public")
 }
 
-enum Role {
-  USER
-  ADMIN
+model User {
+  id            String     @id
+  name          String?
+  email         String?    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role       @default(USER)
+  Account       Account[]
+  BlogPost      BlogPost[]
+  Session       Session[]
+
+  @@schema("public")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@schema("public")
 }
 
 enum ApplicationStatus {
@@ -115,10 +118,21 @@ enum ApplicationStatus {
   REVIEWING
   ACCEPTED
   REJECTED
+
+  @@schema("public")
 }
 
 enum ContactStatus {
   UNREAD
   READ
   REPLIED
+
+  @@schema("public")
+}
+
+enum Role {
+  USER
+  ADMIN
+
+  @@schema("public")
 }

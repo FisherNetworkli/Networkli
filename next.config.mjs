@@ -5,18 +5,17 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'tmctlkjnjnirafxgfnza.supabase.co',
+        hostname: 'ctglknfjoryifmpoynjb.supabase.co',
         port: '',
-        pathname: '/storage/v1/object/public/images/**',
+        pathname: '/storage/v1/object/**',
       },
       {
         protocol: 'https',
-        hostname: 'localhost',
-        port: '3001',
-        pathname: '/storage/v1/object/public/images/**',
+        hostname: 'ctglknfjoryifmpoynjb.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/sign/**',
       },
     ],
-    formats: ['image/avif', 'image/webp'],
   },
   // Enable SWC minification for faster builds
   swcMinify: true,

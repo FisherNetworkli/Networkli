@@ -11,17 +11,14 @@ import {
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon
 } from '@heroicons/react/24/outline';
-import { prisma } from '@/lib/prisma';
-import { authOptions } from '@/lib/auth';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { authOptions } from '@/app/api/auth/[...nextauth]/auth';
 
 // Helper function to calculate percentage change
-function calculatePercentageChange(current: number, previous: number): { value: number; type: 'positive' | 'negative' } {
-  if (previous === 0) return { value: 0, type: 'positive' };
-  const change = ((current - previous) / previous) * 100;
-  return { 
-    value: Math.abs(Math.round(change * 10) / 10), 
-    type: change >= 0 ? 'positive' : 'negative' 
-  };
+function calculatePercentageChange(current: number, previous: number): number {
+  if (previous === 0) return 100;
+  return ((current - previous) / previous) * 100;
 }
 
 // Helper function to format date
@@ -35,98 +32,134 @@ function formatDate(date: Date): string {
 
 export default async function AdminDashboard() {
   const session = await getServerSession(authOptions);
+  const supabase = createServerComponentClient({ cookies });
 
   if (!session) {
     redirect('/login');
   }
 
-  // Fetch data from the database
+  // Fetch data from Supabase
   const [
-    blogPosts,
-    jobApplications,
-    contactMessages,
-    users
+    { data: blogPosts },
+    { data: jobApplications },
+    { data: contactMessages },
+    { data: users }
   ] = await Promise.all([
-    prisma.blogPost.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-    }),
-    prisma.jobApplication.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-    }),
-    prisma.contactSubmission.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-    }),
-    prisma.user.findMany({
-      take: 1,
-    }),
+    supabase
+      .from('blog_posts')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('job_applications')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('contact_submissions')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('profiles')
+      .select('*')
+      .limit(1)
   ]);
 
   // Calculate stats
-  const totalPosts = await prisma.blogPost.count();
-  const totalApplications = await prisma.jobApplication.count();
-  const totalMessages = await prisma.contactSubmission.count();
-  const totalUsers = await prisma.user.count();
+  const [
+    { count: totalPosts },
+    { count: totalApplications },
+    { count: totalMessages },
+    { count: totalUsers }
+  ] = await Promise.all([
+    supabase.from('blog_posts').select('*', { count: 'exact', head: true }),
+    supabase.from('job_applications').select('*', { count: 'exact', head: true }),
+    supabase.from('contact_submissions').select('*', { count: 'exact', head: true }),
+    supabase.from('profiles').select('*', { count: 'exact', head: true })
+  ]);
+
+  // Ensure counts are numbers
+  const postsCount = Number(totalPosts) || 0;
+  const applicationsCount = Number(totalApplications) || 0;
+  const messagesCount = Number(totalMessages) || 0;
+  const usersCount = Number(totalUsers) || 0;
 
   // Calculate weekly changes (this is a simplified example)
   // In a real app, you would compare with data from the previous week
-  const weeklyPostsChange = calculatePercentageChange(totalPosts, Math.max(0, totalPosts - 3));
-  const weeklyApplicationsChange = calculatePercentageChange(totalApplications, Math.max(0, totalApplications - 23));
-  const weeklyMessagesChange = calculatePercentageChange(totalMessages, Math.max(0, totalMessages - 8));
-  const monthlyUsersChange = calculatePercentageChange(totalUsers, Math.max(0, totalUsers - 210));
+  const weeklyPostsChange = calculatePercentageChange(postsCount, Math.max(0, postsCount - 3));
+  const weeklyApplicationsChange = calculatePercentageChange(applicationsCount, Math.max(0, applicationsCount - 23));
+  const weeklyMessagesChange = calculatePercentageChange(messagesCount, Math.max(0, messagesCount - 8));
+  const monthlyUsersChange = calculatePercentageChange(usersCount, Math.max(0, usersCount - 210));
 
   // Calculate application status distribution
-  const applicationStatuses = await prisma.jobApplication.groupBy({
-    by: ['status'],
-    _count: true,
-  });
+  const { data: applicationStatuses } = await supabase
+    .from('job_applications')
+    .select('status')
+    .then(({ data }) => {
+      const statusCounts = data?.reduce((acc: Record<string, number>, curr) => {
+        acc[curr.status] = (acc[curr.status] || 0) + 1;
+        return acc;
+      }, {});
+      return { data: Object.entries(statusCounts || {}).map(([status, count]) => ({ status, count })) };
+    });
 
   // Calculate message status distribution
-  const messageStatuses = await prisma.contactSubmission.groupBy({
-    by: ['status'],
-    _count: true,
-  });
+  const { data: messageStatuses } = await supabase
+    .from('contact_submissions')
+    .select('status')
+    .then(({ data }) => {
+      const statusCounts = data?.reduce((acc: Record<string, number>, curr) => {
+        acc[curr.status] = (acc[curr.status] || 0) + 1;
+        return acc;
+      }, {});
+      return { data: Object.entries(statusCounts || {}).map(([status, count]) => ({ status, count })) };
+    });
 
   // Calculate blog post categories
-  const blogCategories = await prisma.blogPost.groupBy({
-    by: ['category'],
-    _count: true,
-  });
+  const { data: blogCategories } = await supabase
+    .from('blog_posts')
+    .select('category')
+    .then(({ data }) => {
+      const categoryCounts = data?.reduce((acc: Record<string, number>, curr) => {
+        acc[curr.category] = (acc[curr.category] || 0) + 1;
+        return acc;
+      }, {});
+      return { data: Object.entries(categoryCounts || {}).map(([category, count]) => ({ category, count })) };
+    });
 
   const stats = [
     {
       name: 'Total Blog Posts',
-      value: totalPosts.toString(),
+      value: postsCount.toString(),
       icon: DocumentTextIcon,
       href: '/admin/blog',
-      change: `${weeklyPostsChange.type === 'positive' ? '+' : '-'}${weeklyPostsChange.value}% this week`,
-      changeType: weeklyPostsChange.type,
+      change: `${weeklyPostsChange > 0 ? '+' : '-'}${Math.abs(weeklyPostsChange).toFixed(1)}% this week`,
+      changeType: weeklyPostsChange > 0 ? 'positive' : 'negative',
     },
     {
       name: 'Job Applications',
-      value: totalApplications.toString(),
+      value: applicationsCount.toString(),
       icon: InboxIcon,
       href: '/admin/applications',
-      change: `${weeklyApplicationsChange.type === 'positive' ? '+' : '-'}${weeklyApplicationsChange.value}% this week`,
-      changeType: weeklyApplicationsChange.type,
+      change: `${weeklyApplicationsChange > 0 ? '+' : '-'}${Math.abs(weeklyApplicationsChange).toFixed(1)}% this week`,
+      changeType: weeklyApplicationsChange > 0 ? 'positive' : 'negative',
     },
     {
       name: 'Contact Messages',
-      value: totalMessages.toString(),
+      value: messagesCount.toString(),
       icon: ChatBubbleLeftIcon,
       href: '/admin/contact',
-      change: `${weeklyMessagesChange.type === 'positive' ? '+' : '-'}${weeklyMessagesChange.value}% this week`,
-      changeType: weeklyMessagesChange.type,
+      change: `${weeklyMessagesChange > 0 ? '+' : '-'}${Math.abs(weeklyMessagesChange).toFixed(1)}% this week`,
+      changeType: weeklyMessagesChange > 0 ? 'positive' : 'negative',
     },
     {
       name: 'Total Users',
-      value: totalUsers.toString(),
+      value: usersCount.toString(),
       icon: ChartBarIcon,
       href: '/admin/users',
-      change: `${monthlyUsersChange.type === 'positive' ? '+' : '-'}${monthlyUsersChange.value}% this month`,
-      changeType: monthlyUsersChange.type,
+      change: `${monthlyUsersChange > 0 ? '+' : '-'}${Math.abs(monthlyUsersChange).toFixed(1)}% this month`,
+      changeType: monthlyUsersChange > 0 ? 'positive' : 'negative',
     },
   ];
 
@@ -178,29 +211,25 @@ export default async function AdminDashboard() {
               </Link>
             </div>
             <div className="space-y-4">
-              {blogPosts.length > 0 ? (
-                blogPosts.map((post) => (
-                  <div key={post.id} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">{post.title}</p>
-                      <p className="text-sm text-gray-500">
-                        {formatDate(post.createdAt)}
-                      </p>
-                    </div>
-                    <span
-                      className={`px-2 py-1 text-xs rounded-full ${
-                        post.published
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}
-                    >
-                      {post.published ? 'Published' : 'Draft'}
-                    </span>
+              {(blogPosts || []).map((post) => (
+                <div key={post.id} className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900">{post.title}</p>
+                    <p className="text-sm text-gray-500">
+                      {formatDate(post.created_at)}
+                    </p>
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-sm">No blog posts found</p>
-              )}
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      post.published
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}
+                  >
+                    {post.published ? 'Published' : 'Draft'}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -216,31 +245,27 @@ export default async function AdminDashboard() {
               </Link>
             </div>
             <div className="space-y-4">
-              {jobApplications.length > 0 ? (
-                jobApplications.map((application) => (
-                  <div key={application.id} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">{application.name}</p>
-                      <p className="text-sm text-gray-500">{application.position}</p>
-                    </div>
-                    <span
-                      className={`px-2 py-1 text-xs rounded-full ${
-                        application.status === 'PENDING'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : application.status === 'REVIEWING'
-                          ? 'bg-blue-100 text-blue-800'
-                          : application.status === 'ACCEPTED'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {application.status}
-                    </span>
+              {(jobApplications || []).map((application) => (
+                <div key={application.id} className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900">{application.name}</p>
+                    <p className="text-sm text-gray-500">{application.position}</p>
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-sm">No applications found</p>
-              )}
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      application.status === 'PENDING'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : application.status === 'REVIEWING'
+                        ? 'bg-blue-100 text-blue-800'
+                        : application.status === 'ACCEPTED'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {application.status}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -256,29 +281,25 @@ export default async function AdminDashboard() {
               </Link>
             </div>
             <div className="space-y-4">
-              {contactMessages.length > 0 ? (
-                contactMessages.map((message) => (
-                  <div key={message.id} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">{message.name}</p>
-                      <p className="text-sm text-gray-500">{message.subject}</p>
-                    </div>
-                    <span
-                      className={`px-2 py-1 text-xs rounded-full ${
-                        message.status === 'UNREAD'
-                          ? 'bg-red-100 text-red-800'
-                          : message.status === 'READ'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-green-100 text-green-800'
-                      }`}
-                    >
-                      {message.status}
-                    </span>
+              {(contactMessages || []).map((message) => (
+                <div key={message.id} className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900">{message.name}</p>
+                    <p className="text-sm text-gray-500">{message.subject}</p>
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-sm">No messages found</p>
-              )}
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      message.status === 'UNREAD'
+                        ? 'bg-red-100 text-red-800'
+                        : message.status === 'READ'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-green-100 text-green-800'
+                    }`}
+                  >
+                    {message.status}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -293,7 +314,7 @@ export default async function AdminDashboard() {
                 <div key={status.status} className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">{status.status}</span>
                   <div className="flex items-center">
-                    <span className="text-sm text-gray-500 mr-2">{status._count}</span>
+                    <span className="text-sm text-gray-500 mr-2">{status.count}</span>
                     <div className="w-24 bg-gray-200 rounded-full h-2.5">
                       <div 
                         className={`h-2.5 rounded-full ${
@@ -301,7 +322,7 @@ export default async function AdminDashboard() {
                           status.status === 'REVIEWING' ? 'bg-blue-500' :
                           status.status === 'ACCEPTED' ? 'bg-green-500' : 'bg-red-500'
                         }`}
-                        style={{ width: `${(status._count / totalApplications) * 100}%` }}
+                        style={{ width: `${(status.count / applicationsCount) * 100}%` }}
                       ></div>
                     </div>
                   </div>
@@ -318,14 +339,14 @@ export default async function AdminDashboard() {
                 <div key={status.status} className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">{status.status}</span>
                   <div className="flex items-center">
-                    <span className="text-sm text-gray-500 mr-2">{status._count}</span>
+                    <span className="text-sm text-gray-500 mr-2">{status.count}</span>
                     <div className="w-24 bg-gray-200 rounded-full h-2.5">
                       <div 
                         className={`h-2.5 rounded-full ${
                           status.status === 'UNREAD' ? 'bg-red-500' :
                           status.status === 'READ' ? 'bg-blue-500' : 'bg-green-500'
                         }`}
-                        style={{ width: `${(status._count / totalMessages) * 100}%` }}
+                        style={{ width: `${(status.count / messagesCount) * 100}%` }}
                       ></div>
                     </div>
                   </div>
@@ -342,11 +363,11 @@ export default async function AdminDashboard() {
                 <div key={category.category} className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">{category.category}</span>
                   <div className="flex items-center">
-                    <span className="text-sm text-gray-500 mr-2">{category._count}</span>
+                    <span className="text-sm text-gray-500 mr-2">{category.count}</span>
                     <div className="w-24 bg-gray-200 rounded-full h-2.5">
                       <div 
                         className="h-2.5 rounded-full bg-connection-blue"
-                        style={{ width: `${(category._count / totalPosts) * 100}%` }}
+                        style={{ width: `${(category.count / postsCount) * 100}%` }}
                       ></div>
                     </div>
                   </div>

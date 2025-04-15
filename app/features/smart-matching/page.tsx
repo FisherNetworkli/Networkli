@@ -7,7 +7,7 @@ export default function SmartMatchingPage() {
       <main className="pt-16">
         <section className="relative h-[40vh] min-h-[300px]">
           <Image
-            src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images/20250412_1521_Cozy%20Security%20Workspace_simple_compose_01jrnxz6raeagvgh3esfn2x3v0.png"
+            src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/public/images/20250412_1521_Cozy Security Workspace_simple_compose_01jrnxz6raeagvgh3esfn2x3v0.png"
             alt="Smart Matching"
             fill
             className="object-cover"
@@ -51,7 +51,7 @@ export default function SmartMatchingPage() {
             </div>
             <div className="relative h-[400px]">
               <Image
-                src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images/20250412_1525_Cafe%20Connection%20Aligned_simple_compose_01jrny7phzeakvaw3xff9jn2aq.png"
+                src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/public/images/20250412_1525_Cafe Connection Aligned_simple_compose_01jrny7phzeakvaw3xff9jn2aq.png"
                 alt="Smart Matching Features"
                 fill
                 className="object-cover rounded-lg"

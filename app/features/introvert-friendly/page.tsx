@@ -7,7 +7,7 @@ export default function IntrovertFriendlyPage() {
       <main className="pt-16">
         <section className="relative h-[40vh] min-h-[300px]">
           <Image
-            src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images/20250412_1519_Cozy%20Networking%20Lounge_simple_compose_01jrnxwpvafr2vv3b404hr8h2c.png"
+            src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/public/images/20250412_1519_Cozy Networking Lounge_simple_compose_01jrnxwpvafr2vv3b404hr8h2c.png"
             alt="Introvert Friendly Networking"
             fill
             className="object-cover"
@@ -51,7 +51,7 @@ export default function IntrovertFriendlyPage() {
             </div>
             <div className="relative h-[400px]">
               <Image
-                src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images/20250412_1520_Perfect%20Match%20Found!_simple_compose_01jrnxy1f9ftkahscvm7fw5xj8.png"
+                src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/public/images/20250412_1520_Perfect Match Found!_simple_compose_01jrnxy1f9ftkahscvm7fw5xj8.png"
                 alt="Introvert Friendly Features"
                 fill
                 className="object-cover rounded-lg"

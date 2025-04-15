@@ -20,13 +20,14 @@ export default function Home() {
       <section className="relative h-screen flex items-center justify-center bg-connection-blue text-white overflow-hidden" aria-label="Hero section">
         <div className="absolute inset-0">
           <Image
-            src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images//20250413_1100_Social%20Media%20Interaction_remix_01jrr1d209e1ztp40mbsry0m56.png"
+            src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/sign/images/20250413_1100_Social%20Media%20Interaction_remix_01jrr1d209e1ztp40mbsry0m56.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzEyZTI0ZDgwLTAxNjItNDVmZS04NWE2LTM0NWE0Mjk5MGJlMiJ9.eyJ1cmwiOiJpbWFnZXMvMjAyNTA0MTNfMTEwMF9Tb2NpYWwgTWVkaWEgSW50ZXJhY3Rpb25fcmVtaXhfMDFqcnIxZDIwOWUxenRwNDBtYnNyeTBtNTYucG5nIiwiaWF0IjoxNzQ0NzMyODUyLCJleHAiOjQ4NjY3OTY4NTJ9.Qk3ynm_aosV1UvkFAzfQVLxzl4nzf6PCs1fJahIYgd8"
             alt="Professional networking at sunset"
             fill
             sizes="(max-width: 768px) 100vw, 100vw"
             quality={90}
             className="object-cover object-center md:hidden"
             priority
+            unoptimized
             style={{
               objectPosition: 'center 30%'
             }}
@@ -35,17 +36,16 @@ export default function Home() {
               // Fallback to a solid color background if image fails to load
               e.currentTarget.style.backgroundColor = '#1e40af';
             }}
-            placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkLzYvLy0vLi44QjY4OEI4Li8vQUVFRUVFRUVFRUVFRUVFRUVFRUX/2wBDAR0XFyAeIBogHiAeIBUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUX/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
           />
           <Image
-            src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images//20250413_1050_Social%20Gathering%20Animation_remix_01jrr0tkmeeaq9k1a9ez9qztyr.png"
+            src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/sign/images/20250413_1050_Social%20Gathering%20Animation_remix_01jrr0tkmeeaq9k1a9ez9qztyr.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzEyZTI0ZDgwLTAxNjItNDVmZS04NWE2LTM0NWE0Mjk5MGJlMiJ9.eyJ1cmwiOiJpbWFnZXMvMjAyNTA0MTNfMTA1MF9Tb2NpYWwgR2F0aGVyaW5nIEFuaW1hdGlvbl9yZW1peF8wMWpycjB0a21lZWFxOWsxYTllejlxenR5ci5wbmciLCJpYXQiOjE3NDQ3MzI4NjUsImV4cCI6NDg2Njc5Njg2NX0.UYFtakCKG2XDPHhhzjUCDDcxqs0L8WaBa-yoUR1Fa_c"
             alt="Professional networking at sunset"
             fill
             sizes="(min-width: 769px) 100vw, 100vw"
             quality={90}
             className="object-cover object-center hidden md:block"
             priority
+            unoptimized
             style={{
               objectPosition: 'center 30%'
             }}
@@ -54,8 +54,6 @@ export default function Home() {
               // Fallback to a solid color background if image fails to load
               e.currentTarget.style.backgroundColor = '#1e40af';
             }}
-            placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkLzYvLy0vLi44QjY4OEI4Li8vQUVFRUVFRUVFRUVFRUVFRUVFRUX/2wBDAR0XFyAeIBogHiAeIBUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUX/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
           />
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-connection-blue/50 to-connection-blue-70/80 z-10" />
@@ -118,7 +116,7 @@ export default function Home() {
             >
               <div className="relative h-64 md:h-80 rounded-xl overflow-hidden">
                 <Image
-                  src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images//20250412_1519_Cozy%20Networking%20Lounge_simple_compose_01jrnxwpvafr2vv3b404hr8h2c.png"
+                  src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/sign/images/20250412_1519_Cozy%20Networking%20Lounge_simple_compose_01jrnxwpvafr2vv3b404hr8h2c.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzEyZTI0ZDgwLTAxNjItNDVmZS04NWE2LTM0NWE0Mjk5MGJlMiJ9.eyJ1cmwiOiJpbWFnZXMvMjAyNTA0MTJfMTUxOV9Db3p5IE5ldHdvcmtpbmcgTG91bmdlX3NpbXBsZV9jb21wb3NlXzAxanJueHdwdmFmcjJ2djNiNDA0aHI4aDJjLnBuZyIsImlhdCI6MTc0NDczMzQ5NCwiZXhwIjo0ODY2Nzk3NDk0fQ.vGMXEI94QKAAixNqarodgr4QX9HpesDRN1BCXK-Rp2A"
                   alt="Networking Made Comfortable"
                   fill
                   className="object-cover"
@@ -143,7 +141,7 @@ export default function Home() {
             >
               <div className="relative h-64 md:h-80 rounded-xl overflow-hidden">
                 <Image
-                  src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images//20250412_1520_Perfect%20Match%20Found!_simple_compose_01jrnxy1f9ftkahscvm7fw5xj8.png"
+                  src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/sign/images/20250412_1520_Perfect%20Match%20Found!_simple_compose_01jrnxy1f9ftkahscvm7fw5xj8.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzEyZTI0ZDgwLTAxNjItNDVmZS04NWE2LTM0NWE0Mjk5MGJlMiJ9.eyJ1cmwiOiJpbWFnZXMvMjAyNTA0MTJfMTUyMF9QZXJmZWN0IE1hdGNoIEZvdW5kIV9zaW1wbGVfY29tcG9zZV8wMWpybnh5MWY5ZnRrYWhzY3ZtN2Z3NXhqOC5wbmciLCJpYXQiOjE3NDQ3MzM0MDYsImV4cCI6NDg2Njc5NzQwNn0.aPzXb_Tcdj6e6ifIvoLLhHKA-KwhETYFM9SnikohoSY"
                   alt="Smart Matching"
                   fill
                   className="object-cover"
@@ -172,8 +170,8 @@ export default function Home() {
                 Learn more about Smart Matching →
               </Link>
             </motion.div>
-          </div>
-        </div>
+      </div>
+      </div>
       </section>
 
       {/* Feature 3: Privacy First */}
@@ -189,7 +187,7 @@ export default function Home() {
             >
               <h2 id="privacy-heading" className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
                 Privacy First
-              </h2>
+          </h2>
               <p className="text-xl text-gray-600 mb-8">
                 Control your networking experience. Choose what to share, when to connect, and how to engage - all on your own terms.
               </p>
@@ -199,7 +197,7 @@ export default function Home() {
                 aria-label="Learn more about our Privacy approach"
               >
                 Learn more about our Privacy approach →
-              </Link>
+        </Link>
             </motion.div>
             <motion.div 
               className="relative rounded-2xl h-96 overflow-hidden"
@@ -210,7 +208,7 @@ export default function Home() {
             >
               <div className="relative h-64 md:h-80 rounded-xl overflow-hidden">
                 <Image
-                  src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images//20250412_1521_Cozy%20Security%20Workspace_simple_compose_01jrnxz6raeagvgh3esfn2x3v0.png"
+                  src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/sign/images/20250412_1521_Cozy%20Security%20Workspace_simple_compose_01jrnxz6raeagvgh3esfn2x3v0.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzEyZTI0ZDgwLTAxNjItNDVmZS04NWE2LTM0NWE0Mjk5MGJlMiJ9.eyJ1cmwiOiJpbWFnZXMvMjAyNTA0MTJfMTUyMV9Db3p5IFNlY3VyaXR5IFdvcmtzcGFjZV9zaW1wbGVfY29tcG9zZV8wMWpybnh6NnJhZWFndmdoM2VzZm4yeDN2MC5wbmciLCJpYXQiOjE3NDQ3MzI5MzgsImV4cCI6NDg2Njc5NjkzOH0.LcktS9WSojjZXUx2YluN99Ww4IaRdDuAUZVUxM96mvw"
                   alt="Privacy First"
                   fill
                   className="object-cover"
@@ -235,7 +233,7 @@ export default function Home() {
             >
               <div className="relative h-64 md:h-80 rounded-xl overflow-hidden">
                 <Image
-                  src="https://tmctlkjnjnirafxgfnza.supabase.co/storage/v1/object/public/images//20250412_1525_Cafe%20Connection%20Aligned_simple_compose_01jrny7phzeakvaw3xff9jn2aq.png"
+                  src="https://ctglknfjoryifmpoynjb.supabase.co/storage/v1/object/sign/images/20250412_1525_Cafe%20Connection%20Aligned_simple_compose_01jrny7phzeakvaw3xff9jn2aq.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5XzEyZTI0ZDgwLTAxNjItNDVmZS04NWE2LTM0NWE0Mjk5MGJlMiJ9.eyJ1cmwiOiJpbWFnZXMvMjAyNTA0MTJfMTUyNV9DYWZlIENvbm5lY3Rpb24gQWxpZ25lZF9zaW1wbGVfY29tcG9zZV8wMWpybnk3cGh6ZWFrdmF3M3hmZjlqbjJhcS5wbmciLCJpYXQiOjE3NDQ3MzI5NjUsImV4cCI6NDg2Njc5Njk2NX0.Q-MPalxwQ_bVqEHW6x_HR3iIH94X994Bl1Uxiehcg7w"
                   alt="Meaningful Connections"
                   fill
                   className="object-cover"
@@ -256,7 +254,7 @@ export default function Home() {
               <p className="text-xl text-gray-600 mb-8">
                 Focus on quality over quantity. Build genuine professional relationships through thoughtful interactions and shared interests.
               </p>
-              <Link 
+        <Link
                 href="/features/meaningful-connections" 
                 className="text-connection-blue text-lg font-medium hover:text-connection-blue-70 transition-colors"
                 aria-label="Learn more about our approach to meaningful connections"
@@ -350,7 +348,7 @@ export default function Home() {
           >
             <h2 id="cta-heading" className="text-4xl md:text-5xl font-bold mb-8">
               Network authentically, at your own pace
-            </h2>
+          </h2>
             <p className="text-xl text-gray-100 mb-12">
               Join a community of professionals who value meaningful connections over superficial networking.
             </p>
@@ -361,8 +359,8 @@ export default function Home() {
                 aria-label="Start your journey with Networkli"
               >
                 Start Your Journey
-              </Link>
-              <Link 
+        </Link>
+        <Link
                 href="/learn-more" 
                 className="inline-block bg-transparent text-white px-8 py-4 rounded-full text-lg font-medium border border-white hover:bg-white/10 transition-colors"
                 aria-label="Learn more about Networkli"
@@ -418,7 +416,7 @@ export default function Home() {
               </p>
             </motion.div>
           </div>
-        </div>
+      </div>
       </section>
     </PublicPageWrapper>
   )

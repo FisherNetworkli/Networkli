@@ -5,6 +5,7 @@ export interface SignupFormData {
   email: string;
   password: string;
   confirmPassword: string;
+  zipCode: string;  // Added zipCode field
 
   // Professional Info
   title: string;
@@ -12,13 +13,18 @@ export interface SignupFormData {
   industry: string;
   experience: string;
   skills: string[];
-  bio: string;
+  professionalInterests: string[];
+  bio: string;  // 100-250 character bio
+  expertise: string;  // What you're good at
+  needs: string;  // What you need
+  meaningfulGoal: string;  // What's most meaningful to you right now
+  termsAccepted: boolean;
 
-  // Preferences
-  interests: string[];
-  lookingFor: string[];
-  preferredIndustries: string[];
-  preferredRoles: string[];
+  // Values & Preferences
+  values: string[];  // Core values that drive you
+  goals: string[];  // What you want to achieve
+  interests: string[];  // Topics that interest you
+  networkingStyle: string[];  // How you prefer to connect
 
   // Social Links
   linkedin?: string;
@@ -65,7 +71,11 @@ export const SIGNUP_STEPS: StepConfig[] = [
       !!data?.title && 
       !!data?.company && 
       !!data?.industry && 
-      (data?.skills?.length ?? 0) > 0
+      (data?.skills?.length ?? 0) > 0 &&
+      !!data?.bio &&
+      !!data?.expertise &&
+      !!data?.needs &&
+      !!data?.meaningfulGoal
   },
   {
     id: 'preferences',
@@ -73,7 +83,7 @@ export const SIGNUP_STEPS: StepConfig[] = [
     description: "What you're looking for",
     isComplete: (data) => 
       (data?.interests?.length ?? 0) > 0 && 
-      (data?.lookingFor?.length ?? 0) > 0
+      (data?.networkingStyle?.length ?? 0) > 0
   },
   {
     id: 'social-links',

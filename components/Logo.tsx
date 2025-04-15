@@ -32,6 +32,7 @@ export default function Logo({ variant = 'default', className = '' }: LogoProps)
         fill
         className="logo-image"
         priority={true}
+        sizes="(max-width: 768px) 100px, 150px"
       />
     </div>
   )

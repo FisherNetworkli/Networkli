@@ -1,138 +1,97 @@
-import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { hash } from 'bcryptjs';
+import { z } from 'zod';
+
+// Define the sign-up schema
+const signUpSchema = z.object({
+  // Basic Info
+  email: z.string().email(),
+  password: z.string().min(8),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  
+  // Professional Info
+  title: z.string().optional(),
+  company: z.string().optional(),
+  industry: z.string().optional(),
+  experience: z.string().optional(),
+  skills: z.array(z.string()).optional(),
+  bio: z.string().optional(),
+  expertise: z.array(z.string()).optional(),
+  needs: z.array(z.string()).optional(),
+  meaningfulGoals: z.string().optional(),
+  
+  // Preferences
+  interests: z.array(z.string()).optional(),
+  lookingFor: z.array(z.string()).optional(),
+  preferredIndustries: z.array(z.string()).optional(),
+  preferredRoles: z.array(z.string()).optional(),
+  
+  // Social Links
+  linkedin: z.string().url().optional(),
+  github: z.string().url().optional(),
+  portfolio: z.string().url().optional(),
+  twitter: z.string().url().optional(),
+  
+  // Default Settings
+  fullName: z.string().optional(),
+  profileVisibility: z.enum(['public', 'private']).optional(),
+  emailNotifications: z.boolean().optional(),
+  marketingEmails: z.boolean().optional(),
+});
 
 export async function POST(request: Request) {
   try {
-    const supabase = createClient();
-    const json = await request.json();
-    const {
-      email,
-      password,
-      firstName,
-      lastName,
-      title,
-      company,
-      industry,
-      experience,
-      skills,
-      bio,
-      interests,
-      lookingFor,
-      preferredIndustries,
-      preferredRoles,
-      linkedin,
-      github,
-      portfolio,
-      twitter,
-      profileVisibility,
-      emailNotifications,
-      marketingEmails,
-    } = json;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    // Hash the password
-    const hashedPassword = await hash(password, 10);
-
-    // Create the user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password: hashedPassword,
-      options: {
-        data: {
-          firstName,
-          lastName,
-          profileVisibility,
-          emailNotifications,
-          marketingEmails,
-        },
-      },
-    });
-
-    if (authError) {
+    if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json(
-        { error: authError.message },
-        { status: 400 }
+        { error: 'Missing Supabase configuration' },
+        { status: 500 }
       );
     }
 
-    if (!authData.user) {
-      return NextResponse.json(
-        { error: 'User creation failed' },
-        { status: 400 }
-      );
-    }
-
-    // Create user preferences
-    const { error: preferencesError } = await supabase
-      .from('user_preferences')
-      .insert({
-        user_id: authData.user.id,
-        interests,
-        looking_for: lookingFor,
-        preferred_industries: preferredIndustries,
-        preferred_roles: preferredRoles,
-      });
-
-    if (preferencesError) {
-      // Rollback user creation
-      await supabase.auth.admin.deleteUser(authData.user.id);
-      return NextResponse.json(
-        { error: 'Failed to create user preferences' },
-        { status: 400 }
-      );
-    }
-
-    // Update professional info in profiles table
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({
-        title,
-        company,
-        industry,
-        experience_level: experience,
-        bio,
-        linkedin_url: linkedin,
-        github_url: github,
-        portfolio_url: portfolio,
-        twitter_url: twitter,
-      })
-      .eq('id', authData.user.id);
-
-    if (profileError) {
-      // Rollback user creation and preferences
-      await supabase.auth.admin.deleteUser(authData.user.id);
-      return NextResponse.json(
-        { error: 'Failed to update profile information' },
-        { status: 400 }
-      );
-    }
-
-    // Add user skills
-    if (skills && skills.length > 0 && authData.user?.id) {
-      const skillInserts = skills.map((skill: string) => ({
-        profile_id: authData.user?.id,
-        skill_id: skill,
-        level: 'intermediate', // Default level, can be customized later
-        years_of_experience: 0, // Default value, can be customized later
-      }));
-
-      const { error: skillsError } = await supabase
-        .from('user_skills')
-        .insert(skillInserts);
-
-      if (skillsError) {
-        // Log the error but don't rollback (skills can be added later)
-        console.error('Failed to add user skills:', skillsError);
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
       }
+    });
+
+    const body = await request.json();
+    const validatedData = signUpSchema.parse(body);
+
+    const { data, error } = await supabase.auth.admin.createUser({
+      email: validatedData.email,
+      password: validatedData.password,
+      email_confirm: true,
+      user_metadata: {
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+        bio: validatedData.bio,
+        expertise: validatedData.expertise || [],
+        needs: validatedData.needs || [],
+        meaningfulGoals: validatedData.meaningfulGoals,
+        profileVisibility: validatedData.profileVisibility || 'public',
+        emailNotifications: validatedData.emailNotifications ?? true,
+      }
+    });
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json({
-      user: authData.user,
-      message: 'User created successfully',
-    });
+    return NextResponse.json({ user: data.user }, { status: 201 });
   } catch (error) {
-    console.error('Signup error:', error);
+    console.error('Error:', error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid request data', details: error.errors },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
