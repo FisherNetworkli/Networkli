@@ -21,6 +21,7 @@ export default function DashboardLayout({
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const supabase = createClientComponentClient();
 
   useEffect(() => {
@@ -43,7 +44,24 @@ export default function DashboardLayout({
   useEffect(() => {
     // Close mobile menu when path changes
     setMobileMenuOpen(false);
+    // Also close user menu when path changes
+    setUserMenuOpen(false);
   }, [pathname]);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (userMenuOpen && !target.closest('.user-menu-container')) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [userMenuOpen]);
 
   if (isLoading) {
     return (
@@ -78,12 +96,11 @@ export default function DashboardLayout({
       )
     },
     {
-      name: 'Notifications',
-      href: '/dashboard/notifications',
+      name: 'Swipe',
+      href: '/dashboard/network/swipe',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
         </svg>
       )
     },
@@ -151,7 +168,12 @@ export default function DashboardLayout({
             
             {/* Logo */}
             <Link href="/dashboard" className="flex items-center">
-              <span className="text-xl font-bold">Networkli</span>
+              <Image 
+                src="/logos/networkli-logo-blue.png" 
+                alt="Networkli Logo" 
+                width={150} 
+                height={50} 
+              />
             </Link>
           </div>
           
@@ -161,17 +183,47 @@ export default function DashboardLayout({
             {user && <Notifications userId={user.id} />}
             
             {/* User menu */}
-            <Link href="/dashboard/profile" className="flex items-center">
-              <div className="h-8 w-8 overflow-hidden rounded-full bg-gray-200">
-                <Image 
-                  src={user?.user_metadata?.avatar_url || '/images/placeholder-avatar.png'} 
-                  alt="Profile" 
-                  width={32} 
-                  height={32}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            </Link>
+            <div className="relative user-menu-container">
+              <button 
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center focus:outline-none"
+                aria-label="User menu"
+                title="Click to open user menu"
+              >
+                <div className="h-8 w-8 overflow-hidden rounded-full bg-gray-200">
+                  <Image 
+                    src={user?.user_metadata?.avatar_url || '/images/placeholder-avatar.png'} 
+                    alt="Profile" 
+                    width={32} 
+                    height={32}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              </button>
+              
+              {/* User dropdown menu */}
+              {userMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                  <Link 
+                    href="/dashboard/profile" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => setUserMenuOpen(false)}
+                  >
+                    Your Profile
+                  </Link>
+                  <button
+                    onClick={async () => {
+                      setUserMenuOpen(false);
+                      await supabase.auth.signOut();
+                      window.location.href = '/';
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -179,14 +231,14 @@ export default function DashboardLayout({
       <div className="flex">
         {/* Desktop sidebar */}
         <div className="hidden md:flex md:w-64 md:flex-col">
-          <div className="fixed inset-y-0 pt-14 w-64 border-r bg-white">
+          <div className="fixed inset-y-0 pt-16 w-64 border-r bg-white">
             <SideNav />
           </div>
         </div>
         
         {/* Main content */}
         <main className="flex-1 md:pl-64">
-          <div className="mx-auto px-4 pt-4 pb-24 md:pb-10">
+          <div className="mx-auto px-4 pt-6 pb-28 md:pb-10">
             {children}
           </div>
         </main>
@@ -214,6 +266,24 @@ export default function DashboardLayout({
               </Link>
             );
           })}
+          
+          {/* Sign out button for mobile */}
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              window.location.href = '/';
+            }}
+            className="flex flex-col items-center justify-center py-3 flex-1 text-gray-500"
+          >
+            <div>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </div>
+            <span className="mt-1 text-xs font-medium">Sign Out</span>
+          </button>
         </nav>
       </div>
       

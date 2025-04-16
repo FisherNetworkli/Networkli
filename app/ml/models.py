@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import Dict, Optional, Tuple
+from torch_geometric.nn import SAGEConv
 
 class NetworkModel(nn.Module):
     """Network model for learning node embeddings."""
@@ -185,4 +186,65 @@ class GNNModel(nn.Module):
         return {
             'embeddings': embeddings,
             'features': features
-        } 
+        }
+
+# ============================
+# Model Definitions from Original Script
+# ============================
+
+class GraphSAGEModel(nn.Module):
+    """GraphSAGE model for node embeddings and classification."""
+    def __init__(self, in_channels: int, hidden_channels: int, num_classes: int):
+        super().__init__()
+        # Increased hidden channels based on original script config
+        self.conv1 = SAGEConv(in_channels, hidden_channels) 
+        self.conv2 = SAGEConv(hidden_channels, hidden_channels)
+        self.conv3 = SAGEConv(hidden_channels, hidden_channels)
+        self.fc = nn.Linear(hidden_channels, num_classes) # Output for classification/clustering
+
+    def forward(self, x: torch.Tensor, edge_index: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Forward pass.
+
+        Args:
+            x: Node features [num_nodes, in_channels]
+            edge_index: Edge indices [2, num_edges]
+
+        Returns:
+            Tuple of:
+                - embeddings: Normalized node embeddings [num_nodes, hidden_channels]
+                - out: Logits for classification/clustering [num_nodes, num_classes]
+        """
+        x = F.relu(self.conv1(x, edge_index))
+        x = F.relu(self.conv2(x, edge_index))
+        x = F.relu(self.conv3(x, edge_index))
+        # Normalize embeddings before final layer (as in original script)
+        embeddings = F.normalize(x, p=2, dim=1) 
+        out = self.fc(embeddings) # Use normalized embeddings for classification
+        return embeddings, out
+
+class MAMLModel(nn.Module):
+    """MAML model operating on pre-computed embeddings."""
+    def __init__(self, input_dim: int, hidden_dim: int, num_classes: int):
+        super().__init__()
+        self.fc1 = nn.Linear(input_dim, hidden_dim)
+        self.fc2 = nn.Linear(hidden_dim, hidden_dim)
+        self.fc3 = nn.Linear(hidden_dim, hidden_dim)
+        self.fc4 = nn.Linear(hidden_dim, num_classes)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass.
+        
+        Args:
+            x: Input embeddings (e.g., from PCA) [num_nodes, input_dim]
+            
+        Returns:
+            Logits for classification/clustering [num_nodes, num_classes]
+        """
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
+        return self.fc4(x)
+
+# Note: The original script used PCA and KMeans. This logic would typically
+# reside in the training scripts or prediction service, not directly in the models file.
+# The MAMLModel expects PCA-reduced embeddings as input based on the original script. 

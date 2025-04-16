@@ -132,10 +132,10 @@ export default function SignUpForm() {
         </Button>
       </form>
       
-      <p className="mt-4 text-center text-sm text-gray-600">
-        Already have an account?{' '}
-        <a href="/login" className="text-blue-600 hover:underline">
-          Log in
+      <p className="mt-10 text-center text-sm text-gray-500">
+        Already a member?{' '}
+        <a href="/signin" className="text-blue-600 hover:underline">
+          Sign in to your account
         </a>
       </p>
     </div>

@@ -1,25 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { prisma } from '@/lib/prisma';
-import { authOptions } from '@/app/api/auth/[...nextauth]/auth';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
 // GET /api/blog - Get all blog posts
 export async function GET() {
   try {
-    const posts = await prisma.blogPost.findMany({
-      where: {
-        published: true,
-      },
-      orderBy: {
-        date: 'desc',
-      },
-    });
-
+    const supabase = createServerComponentClient({ cookies });
+    
+    // Fetch blog posts directly from Supabase
+    const { data: posts, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('published', true)
+      .order('date', { ascending: false });
+    
+    if (error) {
+      throw error;
+    }
+    
     return NextResponse.json(posts);
   } catch (error) {
     console.error('Error fetching blog posts:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch blog posts' },
+      { error: 'Failed to fetch blog posts', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
@@ -28,8 +31,26 @@ export async function GET() {
 // POST /api/blog - Create a new blog post
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user || session.user.role !== 'ADMIN') {
+    const supabase = createServerComponentClient({ cookies });
+    
+    // Check if user is authenticated
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    
+    // Check if user is admin by querying the profiles table
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+    
+    if (!profile || profile.role !== 'admin') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -55,8 +76,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const post = await prisma.blogPost.create({
-      data: {
+    // Create blog post using Supabase
+    const { data: post, error } = await supabase
+      .from('blog_posts')
+      .insert({
         title,
         slug,
         content,
@@ -64,18 +87,23 @@ export async function POST(request: NextRequest) {
         image,
         category,
         tags,
-        readTime,
+        read_time: readTime,
         author,
-        userId: session.user.id as string,
+        user_id: session.user.id,
         published: false,
-      },
-    });
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      throw error;
+    }
 
     return NextResponse.json(post);
   } catch (error) {
     console.error('Error creating blog post:', error);
     return NextResponse.json(
-      { error: 'Failed to create blog post' },
+      { error: 'Failed to create blog post', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

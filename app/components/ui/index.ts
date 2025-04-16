@@ -1,4 +1,4 @@
-export { Card } from './card';
 export { Select } from './select';
 export { Button } from './button';
-export { Tabs } from './tabs'; 
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from './card';
+export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs'; 

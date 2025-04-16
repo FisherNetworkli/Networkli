@@ -27,16 +27,16 @@ export function SocialLinksStep() {
             id="linkedin"
             type="url"
             placeholder="https://linkedin.com/in/your-profile"
-            {...register('linkedin', {
+            {...register('linkedinUrl', {
               pattern: {
                 value: /^https?:\/\/(www\.)?linkedin\.com\/in\/[\w-]+\/?$/,
                 message: 'Please enter a valid LinkedIn profile URL',
               },
             })}
-            className={`bg-white text-gray-900 ${errors.linkedin ? 'border-red-500' : 'border-gray-300'}`}
+            className={`bg-white text-gray-900 ${errors.linkedinUrl ? 'border-red-500' : 'border-gray-300'}`}
           />
-          {errors.linkedin && (
-            <p className="text-sm text-red-500">{errors.linkedin.message}</p>
+          {errors.linkedinUrl && (
+            <p className="text-sm text-red-500">{errors.linkedinUrl.message}</p>
           )}
         </div>
 
@@ -46,16 +46,16 @@ export function SocialLinksStep() {
             id="twitter"
             type="url"
             placeholder="https://twitter.com/your-handle"
-            {...register('twitter', {
+            {...register('twitterUrl', {
               pattern: {
                 value: /^https?:\/\/(www\.)?twitter\.com\/[\w-]+\/?$/,
                 message: 'Please enter a valid Twitter profile URL',
               },
             })}
-            className={`bg-white text-gray-900 ${errors.twitter ? 'border-red-500' : 'border-gray-300'}`}
+            className={`bg-white text-gray-900 ${errors.twitterUrl ? 'border-red-500' : 'border-gray-300'}`}
           />
-          {errors.twitter && (
-            <p className="text-sm text-red-500">{errors.twitter.message}</p>
+          {errors.twitterUrl && (
+            <p className="text-sm text-red-500">{errors.twitterUrl.message}</p>
           )}
         </div>
 
@@ -65,16 +65,16 @@ export function SocialLinksStep() {
             id="github"
             type="url"
             placeholder="https://github.com/your-username"
-            {...register('github', {
+            {...register('githubUrl', {
               pattern: {
                 value: /^https?:\/\/(www\.)?github\.com\/[\w-]+\/?$/,
                 message: 'Please enter a valid GitHub profile URL',
               },
             })}
-            className={`bg-white text-gray-900 ${errors.github ? 'border-red-500' : 'border-gray-300'}`}
+            className={`bg-white text-gray-900 ${errors.githubUrl ? 'border-red-500' : 'border-gray-300'}`}
           />
-          {errors.github && (
-            <p className="text-sm text-red-500">{errors.github.message}</p>
+          {errors.githubUrl && (
+            <p className="text-sm text-red-500">{errors.githubUrl.message}</p>
           )}
         </div>
 
@@ -84,16 +84,16 @@ export function SocialLinksStep() {
             id="website"
             type="url"
             placeholder="https://your-website.com"
-            {...register('website', {
+            {...register('websiteUrl', {
               pattern: {
-                value: /^https?:\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/,
+                value: /^https?:\/\/([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/,
                 message: 'Please enter a valid website URL',
               },
             })}
-            className={`bg-white text-gray-900 ${errors.website ? 'border-red-500' : 'border-gray-300'}`}
+            className={`bg-white text-gray-900 ${errors.websiteUrl ? 'border-red-500' : 'border-gray-300'}`}
           />
-          {errors.website && (
-            <p className="text-sm text-red-500">{errors.website.message}</p>
+          {errors.websiteUrl && (
+            <p className="text-sm text-red-500">{errors.websiteUrl.message}</p>
           )}
         </div>
       </div>

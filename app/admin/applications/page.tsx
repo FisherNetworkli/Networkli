@@ -18,7 +18,7 @@ interface Application {
   referral: string | null;
   videoUrl: string;
   status: 'PENDING' | 'REVIEWING' | 'ACCEPTED' | 'REJECTED';
-  createdAt: Date;
+  created_at: string;
 }
 
 export default function ApplicationsPage() {
@@ -45,14 +45,24 @@ export default function ApplicationsPage() {
     fetchApplications();
   }, []);
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(date));
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Invalid date';
+      }
+      
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(date);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
   };
 
   const getStatusColor = (status: Application['status']) => {
@@ -112,7 +122,7 @@ export default function ApplicationsPage() {
                         className="hover:bg-gray-50 cursor-pointer"
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(application.createdAt)}
+                          {formatDate(application.created_at)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{application.name}</div>

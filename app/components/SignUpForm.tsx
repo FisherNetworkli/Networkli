@@ -40,6 +40,19 @@ interface FormData {
   socialValues: string[];
 }
 
+interface ValidationErrors {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  industry?: string;
+  experienceLevel?: string;
+  educationLevel?: string;
+  skillsError?: string;
+  valuesError?: string;
+  [key: string]: string | undefined;
+}
+
 const initialFormData: FormData = {
   firstName: '',
   lastName: '',
@@ -65,7 +78,7 @@ export default function SignUpForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
-  const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [errors, setErrors] = useState<ValidationErrors>({});
   const [loading, setLoading] = useState(false);
 
   const totalSteps = 4;
@@ -90,8 +103,8 @@ export default function SignUpForm() {
   };
 
   const validateStep = (step: number): boolean => {
-    const newErrors: Partial<FormData> = {};
-
+    const newErrors: ValidationErrors = {};
+    
     switch (step) {
       case 1:
         if (!formData.firstName) newErrors.firstName = 'First name is required';
@@ -108,14 +121,14 @@ export default function SignUpForm() {
         if (formData.technicalSkills.length === 0 && 
             formData.softSkills.length === 0 && 
             formData.businessSkills.length === 0) {
-          newErrors.technicalSkills = 'Select at least one skill';
+          newErrors.skillsError = 'Select at least one skill';
         }
         break;
       case 4:
         if (formData.workValues.length === 0 && 
             formData.personalValues.length === 0 && 
             formData.socialValues.length === 0) {
-          newErrors.workValues = 'Select at least one value';
+          newErrors.valuesError = 'Select at least one value';
         }
         break;
     }

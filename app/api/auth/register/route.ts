@@ -103,23 +103,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Fetch location data from ZIP code
-    console.log('Fetching location data for ZIP:', validatedData.zipCode);
-    const locationResponse = await fetch(
-      `http://localhost:3002/api/cities?query=${validatedData.zipCode}`
-    );
-    
-    if (!locationResponse.ok) {
-      console.error('Failed to fetch location data:', await locationResponse.text());
-      return NextResponse.json(
-        { error: 'Failed to validate location' },
-        { status: 400 }
-      );
-    }
-
-    const locationData = await locationResponse.json();
-    const formattedLocation = `${locationData.name}, ${locationData.adminCode1}`;
-
     // Create user with Supabase Auth using service role client
     console.log('Creating user with Supabase Auth...');
     console.log('Service role client config:', {
@@ -167,8 +150,8 @@ export async function POST(req: Request) {
 
     const userId = authData.user.id;
 
-    // Update existing profile with location details
-    const { data: profile, error: updateProfileError } = await serviceRoleClient
+    // Initialize profile with basic info
+    const { error: basicProfileError } = await serviceRoleClient
       .from('profiles')
       .update({
         email: validatedData.email,
@@ -177,46 +160,65 @@ export async function POST(req: Request) {
         full_name: `${validatedData.firstName} ${validatedData.lastName}`,
         profile_visibility: validatedData.profileVisibility || 'public',
         email_notifications: validatedData.emailNotifications,
-        marketing_emails: validatedData.marketingEmails,
-        location: formattedLocation,
-        city: locationData.name,
-        state: locationData.adminName1,
-        state_code: locationData.adminCode1,
-        county: locationData.adminName2,
-        zip_code: locationData.postalcode,
-        lat: locationData.lat,
-        lng: locationData.lng,
-        country_code: locationData.countryCode
+        marketing_emails: validatedData.marketingEmails
       })
-      .eq('id', userId)
-      .select()
-      .single();
+      .eq('id', userId);
 
-    if (updateProfileError) {
-      console.error('Error updating profile:', updateProfileError);
+    if (basicProfileError) {
+      console.error('Error updating basic profile:', basicProfileError);
       await serviceRoleClient.auth.admin.deleteUser(userId);
       return NextResponse.json(
-        { error: 'Failed to update profile', details: updateProfileError.message },
+        { error: 'Failed to update basic profile', details: basicProfileError.message },
         { status: 500 }
       );
     }
 
-    if (!profile) {
-      console.error('Profile not found after update');
-      await serviceRoleClient.auth.admin.deleteUser(userId);
-      return NextResponse.json(
-        { error: 'Failed to update profile - not found' },
-        { status: 500 }
-      );
-    }
+    // Validate zip code and update location if provided
+    if (validatedData.zipCode) {
+      try {
+        // Make API call to cities endpoint to validate zip code
+        const cityResponse = await fetch(
+          `/api/cities?query=${validatedData.zipCode}`
+        );
+        
+        if (!cityResponse.ok) {
+          console.error('Failed to validate location:', await cityResponse.text());
+          return NextResponse.json(
+            { error: 'Failed to validate location' },
+            { status: 400 }
+          );
+        }
+        
+        const locationData = await cityResponse.json();
+        const formattedLocation = `${locationData.name}, ${locationData.adminCode1}`;
+        
+        // Update profile with location details
+        const { error: locationUpdateError } = await serviceRoleClient
+          .from('profiles')
+          .update({
+            location: formattedLocation,
+            city: locationData.name,
+            state: locationData.adminName1,
+            state_code: locationData.adminCode1,
+            county: locationData.adminName2,
+            zip_code: locationData.postalcode,
+            lat: locationData.lat,
+            lng: locationData.lng,
+            country_code: locationData.countryCode
+          })
+          .eq('id', userId);
 
-    console.log('Profile updated successfully:', {
-      id: profile.id,
-      email: profile.email,
-      first_name: profile.first_name,
-      last_name: profile.last_name,
-      profile_visibility: profile.profile_visibility
-    });
+        if (locationUpdateError) {
+          console.error('Error updating location details:', locationUpdateError);
+          // We don't need to fail the entire registration for location problems
+          console.warn('Continuing registration despite location update failure');
+        }
+      } catch (error) {
+        console.error('Error validating zip code:', error);
+        // We don't need to fail the entire registration for location problems
+        console.warn('Continuing registration despite location validation failure');
+      }
+    }
 
     // Update profile with professional details
     const { error: updateError } = await serviceRoleClient

@@ -9,7 +9,7 @@ interface Message {
   subject: string;
   message: string;
   status: 'UNREAD' | 'READ';
-  createdAt: Date;
+  created_at: string;
 }
 
 interface MessageViewProps {
@@ -17,6 +17,20 @@ interface MessageViewProps {
   onClose: () => void;
   onStatusChange: () => void;
 }
+
+// Function to safely format date
+const formatDate = (date: string): string => {
+  try {
+    const dateObj = new Date(date);
+    if (isNaN(dateObj.getTime())) {
+      return 'Invalid date';
+    }
+    return dateObj.toLocaleString();
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid date';
+  }
+};
 
 export default function MessageView({ message, onClose, onStatusChange }: MessageViewProps) {
   const [isUpdating, setIsUpdating] = useState(false);
@@ -83,7 +97,7 @@ export default function MessageView({ message, onClose, onStatusChange }: Messag
                 {message.status}
               </span>
               <span className="text-sm text-gray-500">
-                {new Date(message.createdAt).toLocaleString()}
+                {formatDate(message.created_at)}
               </span>
             </div>
 

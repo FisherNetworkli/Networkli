@@ -5,8 +5,8 @@ import '../styles/globals.css'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import Providers from '../components/Providers'
-import { getServerSession } from 'next-auth'
-import { authOptions } from './api/auth/[...nextauth]/auth'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -83,7 +83,8 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await getServerSession(authOptions)
+  const supabase = createServerComponentClient({ cookies })
+  const { data: { session } } = await supabase.auth.getSession()
 
   return (
     <html lang="en" className={`${inter.variable} scroll-smooth antialiased`}>
@@ -136,7 +137,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-gradient-to-b from-white via-white to-connection-blue-40/10 font-sans text-gray-900">
-        <Providers session={session}>
+        <Providers>
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-networkli-orange-40/10 to-connection-blue-40/10 opacity-50" />
             <Navbar />

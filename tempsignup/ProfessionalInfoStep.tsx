@@ -78,7 +78,7 @@ export function ProfessionalInfoStep() {
           <select
             id="title"
             className="w-full rounded-md border border-gray-300 bg-white text-gray-900 px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-networkly-orange focus-visible:ring-offset-2"
-            {...register('title', {
+            {...register('jobTitle', {
               required: 'Job title is required',
             })}
           >
@@ -89,8 +89,8 @@ export function ProfessionalInfoStep() {
               </option>
             ))}
           </select>
-          {errors.title && (
-            <p className="text-sm text-red-500">{errors.title.message}</p>
+          {errors.jobTitle && (
+            <p className="text-sm text-red-500">{errors.jobTitle.message}</p>
           )}
         </div>
 

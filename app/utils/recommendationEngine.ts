@@ -11,10 +11,48 @@ export interface RecommendationScore {
 }
 
 /**
- * Calculate relevance score between current user and target profiles
- * Higher score means more relevant
+ * Get personalized recommendations from the API
+ * Uses the enhanced recommendation engine on the backend
  */
 export async function getRecommendations(userId: string, limit: number = 10): Promise<RecommendationScore[]> {
+  try {
+    // Call the API endpoint
+    const response = await fetch(`/api/recommendations?userId=${userId}&limit=${limit}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Transform API response to the expected format
+    return data.recommendations.map((rec: any) => ({
+      profileId: rec.id,
+      name: rec.full_name || `${rec.first_name || ''} ${rec.last_name || ''}`.trim(),
+      title: rec.title,
+      avatarUrl: rec.avatar_url,
+      company: rec.company,
+      score: Math.round(rec.similarity_score * 100), // Convert similarity score to a 0-100 scale
+      matchReasons: rec.reason ? [rec.reason] : []
+    }));
+  } catch (error) {
+    console.error('Error fetching recommendations:', error);
+    
+    // Fall back to local recommendations if API fails
+    return await getLocalRecommendations(userId, limit);
+  }
+}
+
+/**
+ * Fallback function that calculates recommendations locally
+ * This is used when the API endpoint fails
+ */
+async function getLocalRecommendations(userId: string, limit: number = 10): Promise<RecommendationScore[]> {
   const supabase = createClientComponentClient();
   
   try {
@@ -135,7 +173,7 @@ export async function getRecommendations(userId: string, limit: number = 10): Pr
       
     return recommendations;
   } catch (error) {
-    console.error('Error in recommendation algorithm:', error);
+    console.error('Error in local recommendation algorithm:', error);
     return [];
   }
 } 

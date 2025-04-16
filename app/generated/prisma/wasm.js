@@ -117,6 +117,21 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
+exports.Prisma.InterestScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.UserInterestScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  interestId: 'interestId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.AccountScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -198,6 +213,20 @@ exports.Prisma.VerificationTokenScalarFieldEnum = {
   expires: 'expires'
 };
 
+exports.Prisma.ContentScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  slug: 'slug',
+  content: 'content',
+  type: 'type',
+  status: 'status',
+  tags: 'tags',
+  authorId: 'authorId',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -231,13 +260,16 @@ exports.Role = exports.$Enums.Role = {
 };
 
 exports.Prisma.ModelName = {
+  Interest: 'Interest',
+  UserInterest: 'UserInterest',
   Account: 'Account',
   BlogPost: 'BlogPost',
   ContactSubmission: 'ContactSubmission',
   JobApplication: 'JobApplication',
   Session: 'Session',
   User: 'User',
-  VerificationToken: 'VerificationToken'
+  VerificationToken: 'VerificationToken',
+  Content: 'Content'
 };
 
 /**

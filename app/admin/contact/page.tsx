@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import MessageView from './MessageView';
 
+// This interface should match the response from Supabase
 interface Message {
   id: string;
   name: string;
@@ -11,7 +12,7 @@ interface Message {
   subject: string;
   message: string;
   status: 'UNREAD' | 'READ';
-  createdAt: Date;
+  created_at: string;
 }
 
 export default function ContactPage() {
@@ -38,14 +39,25 @@ export default function ContactPage() {
     fetchMessages();
   }, []);
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(date));
+  // Safe date formatting function
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Invalid date';
+      }
+      
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(date);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
   };
 
   return (
@@ -90,7 +102,7 @@ export default function ContactPage() {
                         className="hover:bg-gray-50 cursor-pointer"
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(message.createdAt)}
+                          {formatDate(message.created_at)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{message.name}</div>

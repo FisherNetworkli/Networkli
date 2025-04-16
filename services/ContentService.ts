@@ -100,9 +100,15 @@ export class ContentService {
     tags?: string[];
   }): Promise<Content> {
     try {
+      const slug = data.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+
       const content = await prisma.content.create({
         data: {
           title: data.title,
+          slug,
           content: data.content,
           authorId: data.authorId,
           type: data.type,

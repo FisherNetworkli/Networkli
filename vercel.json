@@ -4,5 +4,14 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["sfo1"]
+  "regions": ["sfo1"],
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "${NEXT_PUBLIC_SUPABASE_URL}",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "${NEXT_PUBLIC_SUPABASE_ANON_KEY}",
+    "SUPABASE_SERVICE_ROLE_KEY": "${SUPABASE_SERVICE_ROLE_KEY}",
+    "NEXTAUTH_SECRET": "${NEXTAUTH_SECRET}",
+    "NEXTAUTH_URL": "${NEXTAUTH_URL}",
+    "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}",
+    "NEXT_PUBLIC_APP_URL": "${NEXT_PUBLIC_APP_URL}"
+  }
 } 

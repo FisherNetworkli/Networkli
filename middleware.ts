@@ -1,6 +1,6 @@
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
-import { NextRequestWithAuth } from 'next-auth/middleware'
+import type { NextRequest } from 'next/server'
 
 // Define public paths that don't require authentication
 const publicPaths = [
@@ -25,45 +25,28 @@ const authPaths = ['/signin', '/signup']
 // Define protected paths that require authentication
 const protectedPaths = ['/dashboard', '/profile', '/settings']
 
-export default async function middleware(req: NextRequestWithAuth) {
-  const token = await getToken({ req })
-  const { pathname } = req.nextUrl
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next()
+  const supabase = createMiddlewareClient({ req, res })
 
-  // Check if the path is a public path (no auth required)
-  const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
-  
-  // Check if the path is an auth page (signin/signup)
-  const isAuthPage = authPaths.some(path => pathname.startsWith(path))
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
-  // Check if the path is a protected route
-  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path))
-
-  // If user is authenticated and tries to access auth pages, redirect to dashboard
-  if (token && isAuthPage) {
+  // If user is signed in and the current path is /signin or /signup redirect the user to /dashboard
+  if (session && (req.nextUrl.pathname === '/signin' || req.nextUrl.pathname === '/signup')) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
-  // If user is not authenticated and tries to access protected routes, redirect to signin
-  if (!token && isProtectedPath) {
-    const signInUrl = new URL('/signin', req.url)
-    signInUrl.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(signInUrl)
+  // If user is not signed in and the current path is /dashboard redirect the user to /signin
+  if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/signin', req.url))
   }
 
-  // Allow access to all other routes
-  return NextResponse.next()
+  return res
 }
 
 // Configure which paths the middleware should run on
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api/auth (auth API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api/auth|_next/static|_next/image|favicon.ico).*)'
-  ]
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 } 

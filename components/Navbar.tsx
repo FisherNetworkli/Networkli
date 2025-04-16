@@ -1,13 +1,27 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import Logo from './Logo'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const supabase = createClientComponentClient()
+
+  useEffect(() => {
+    const checkUserSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setIsLoggedIn(!!session)
+    }
+
+    checkUserSession()
+  }, [supabase])
+
+  if (isLoggedIn) return null
 
   const handleLinkClick = () => {
     setIsMobileMenuOpen(false)
@@ -64,10 +78,10 @@ export default function Navbar() {
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center space-x-6">
             <Link 
-              href="/login" 
-              className="text-sm font-medium text-gray-600 hover:text-connection-blue transition-colors"
+              href="/signin"
+              className="text-sm font-semibold leading-6 text-gray-900"
             >
-              Log in
+              Log in <span aria-hidden="true">&rarr;</span>
             </Link>
             <Link 
               href="/signup" 
@@ -147,11 +161,11 @@ export default function Navbar() {
             </Link>
             <div className="pt-4 space-y-2">
               <Link 
-                href="/login" 
+                href="/signin"
                 onClick={handleLinkClick}
                 className="block w-full text-center px-4 py-2.5 text-base font-medium text-gray-600 hover:text-connection-blue hover:bg-gray-50 rounded-lg transition-colors"
               >
-                Log in
+                Log in <span aria-hidden="true">&rarr;</span>
               </Link>
               <Link 
                 href="/signup" 

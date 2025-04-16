@@ -16,7 +16,7 @@ interface Application {
   referral: string | null;
   videoUrl: string;
   status: 'PENDING' | 'REVIEWING' | 'ACCEPTED' | 'REJECTED';
-  createdAt: Date;
+  created_at: string;
 }
 
 interface ApplicationViewProps {
@@ -32,7 +32,7 @@ export default function ApplicationView({ application, onClose, onStatusChange }
     setIsUpdating(true);
     try {
       const response = await fetch(`/api/applications/${application.id}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -132,7 +132,7 @@ export default function ApplicationView({ application, onClose, onStatusChange }
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-500">
-                  Applied on {new Date(application.createdAt).toLocaleString()}
+                  Applied on {new Date(application.created_at).toLocaleString()}
                 </span>
                 <span
                   className={`px-2 py-1 text-xs font-semibold rounded-full ${

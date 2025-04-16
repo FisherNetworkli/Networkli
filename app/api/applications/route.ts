@@ -1,29 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/auth';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== 'ADMIN') {
+    const supabase = createServerComponentClient({ cookies });
+    
+    // Check if user is authenticated
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    
+    // Check if user is admin by querying the profiles table
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+    
+    if (!profile || profile.role !== 'admin') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const applications = await prisma.jobApplication.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    // Fetch applications using Supabase
+    const { data: applications, error } = await supabase
+      .from('job_applications')
+      .select('*')
+      .order('created_at', { ascending: false });
+      
+    if (error) {
+      throw error;
+    }
 
     return NextResponse.json(applications);
   } catch (error) {
     console.error('Error fetching applications:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch applications' },
+      { error: 'Failed to fetch applications', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
@@ -31,6 +52,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createServerComponentClient({ cookies });
     const { name, email, phone, position, experience, resume, coverLetter } = await request.json();
 
     if (!name || !email || !phone || !position || !experience || !resume) {
@@ -40,23 +62,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const application = await prisma.jobApplication.create({
-      data: {
+    // Create job application using Supabase
+    const { data: application, error } = await supabase
+      .from('job_applications')
+      .insert({
         name,
         email,
         phone,
         position,
         experience,
         resume,
-        coverLetter,
-      },
-    });
+        cover_letter: coverLetter,
+        status: 'PENDING',
+      })
+      .select()
+      .single();
+      
+    if (error) {
+      throw error;
+    }
 
     return NextResponse.json(application);
   } catch (error) {
     console.error('Error creating application:', error);
     return NextResponse.json(
-      { error: 'Failed to create application' },
+      { error: 'Failed to create application', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

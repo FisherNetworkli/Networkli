@@ -8,7 +8,8 @@ import {
   ChatBubbleLeftIcon,
   ArrowLeftOnRectangleIcon 
 } from '@heroicons/react/24/outline';
-import { signOut } from 'next-auth/react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useRouter } from 'next/navigation';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: HomeIcon },
@@ -18,6 +19,14 @@ const navigation = [
 ];
 
 export default function AdminNav() {
+  const router = useRouter();
+  const supabase = createClientComponentClient();
+  
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/signin');
+  };
+  
   return (
     <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
       <div className="flex min-h-0 flex-1 flex-col bg-connection-blue">
@@ -40,7 +49,7 @@ export default function AdminNav() {
               </Link>
             ))}
             <button
-              onClick={() => signOut()}
+              onClick={handleSignOut}
               className="w-full group flex items-center px-2 py-2 text-sm font-medium text-white hover:bg-connection-blue-dark rounded-md"
             >
               <ArrowLeftOnRectangleIcon

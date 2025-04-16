@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Select, Button, Tabs } from '@/components/ui';
+import { Card } from '@/app/components/ui/card';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/app/components/ui/select';
+import { Button } from '@/app/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/app/components/ui/tabs';
 import dynamic from 'next/dynamic';
-import { useSupabase } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
+import { Data, Layout, Config } from 'plotly.js';
 
 // Dynamically import Plotly for client-side rendering
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
+
+type CategoryType = 'skills' | 'interests' | 'professionalGoals' | 'values';
 
 interface GroupMember {
   id: string;
@@ -17,22 +23,55 @@ interface GroupMember {
   lastActive: string;
 }
 
+interface GroupMemberResponse {
+  id: string;
+  user_id: string;
+  joined_at: string;
+  users: {
+    id: string;
+    full_name: string;
+    skills: string[];
+    interests: string[];
+    professional_goals: string[];
+    values: string[];
+    last_active: string;
+  };
+}
+
 interface LeaderDashboardProps {
   groupId: string;
   groupName: string;
 }
 
+interface NetworkNode {
+  id: string;
+  name: string;
+  size: number;
+  x: number;
+  y: number;
+}
+
+interface NetworkEdge {
+  source: string;
+  target: string;
+  weight: number;
+}
+
+interface NetworkData {
+  nodes: NetworkNode[];
+  edges: NetworkEdge[];
+}
+
 export default function LeaderDashboard({ groupId, groupName }: LeaderDashboardProps) {
   const [activeTab, setActiveTab] = useState('overview');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(['skills']);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryType>('skills');
   const [members, setMembers] = useState<GroupMember[]>([]);
-  const [networkData, setNetworkData] = useState<any>(null);
-  const { supabase } = useSupabase();
+  const [networkData, setNetworkData] = useState<NetworkData | null>(null);
 
   // Fetch group members and their data
   useEffect(() => {
     const fetchMembers = async () => {
-      const { data, error } = await supabase
+      const { data: rawData, error } = await supabase
         .from('group_members')
         .select(`
           id,
@@ -55,6 +94,7 @@ export default function LeaderDashboard({ groupId, groupName }: LeaderDashboardP
         return;
       }
 
+      const data = rawData as unknown as GroupMemberResponse[];
       const formattedMembers = data.map(member => ({
         id: member.user_id,
         name: member.users.full_name,
@@ -70,23 +110,29 @@ export default function LeaderDashboard({ groupId, groupName }: LeaderDashboardP
     };
 
     fetchMembers();
-  }, [groupId, supabase]);
+  }, [groupId]);
 
   // Update network visualization when categories or members change
   useEffect(() => {
     if (members.length === 0) return;
 
-    // Calculate similarities and create network data
-    const nodes = members.map(member => ({
-      id: member.id,
-      name: member.name,
-      size: 10
-    }));
+    // Calculate node positions using a simple circular layout
+    const radius = 1;
+    const nodes = members.map((member, i) => {
+      const angle = (2 * Math.PI * i) / members.length;
+      return {
+        id: member.id,
+        name: member.name,
+        size: 20,
+        x: radius * Math.cos(angle),
+        y: radius * Math.sin(angle)
+      };
+    });
 
-    const edges: any[] = [];
+    const edges: NetworkEdge[] = [];
     for (let i = 0; i < members.length; i++) {
       for (let j = i + 1; j < members.length; j++) {
-        const similarity = calculateSimilarity(members[i], members[j], selectedCategories);
+        const similarity = calculateSimilarity(members[i], members[j], selectedCategory);
         if (similarity > 0.2) {
           edges.push({
             source: members[i].id,
@@ -98,24 +144,18 @@ export default function LeaderDashboard({ groupId, groupName }: LeaderDashboardP
     }
 
     setNetworkData({ nodes, edges });
-  }, [members, selectedCategories]);
+  }, [members, selectedCategory]);
 
-  const calculateSimilarity = (user1: GroupMember, user2: GroupMember, categories: string[]) => {
-    let totalSimilarity = 0;
+  const calculateSimilarity = (user1: GroupMember, user2: GroupMember, category: CategoryType) => {
+    const set1 = new Set(user1[category] as string[]);
+    const set2 = new Set(user2[category] as string[]);
     
-    for (const category of categories) {
-      const set1 = new Set(user1[category as keyof GroupMember] as string[]);
-      const set2 = new Set(user2[category as keyof GroupMember] as string[]);
-      
-      if (set1.size === 0 && set2.size === 0) continue;
-      
-      const intersection = new Set([...set1].filter(x => set2.has(x)));
-      const union = new Set([...set1, ...set2]);
-      
-      totalSimilarity += intersection.size / union.size;
-    }
+    if (set1.size === 0 && set2.size === 0) return 0;
     
-    return totalSimilarity / categories.length;
+    const intersection = new Set([...set1].filter(x => set2.has(x)));
+    const union = new Set([...set1, ...set2]);
+    
+    return intersection.size / union.size;
   };
 
   const getGroupMetrics = () => {
@@ -135,38 +175,44 @@ export default function LeaderDashboard({ groupId, groupName }: LeaderDashboardP
     };
   };
 
+  const categoryOptions = [
+    { label: 'Skills', value: 'skills' },
+    { label: 'Interests', value: 'interests' },
+    { label: 'Professional Goals', value: 'professionalGoals' },
+    { label: 'Values', value: 'values' }
+  ] as const;
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">{groupName} Dashboard</h1>
         <Select
-          multiple
-          value={selectedCategories}
-          onChange={(value) => setSelectedCategories(value as string[])}
-          options={[
-            { label: 'Skills', value: 'skills' },
-            { label: 'Interests', value: 'interests' },
-            { label: 'Professional Goals', value: 'professionalGoals' },
-            { label: 'Values', value: 'values' }
-          ]}
-          className="w-64"
-        />
+          value={selectedCategory}
+          onValueChange={(value: CategoryType) => setSelectedCategory(value)}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select category" />
+          </SelectTrigger>
+          <SelectContent>
+            {categoryOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        items={[
-          { label: 'Overview', value: 'overview' },
-          { label: 'Network', value: 'network' },
-          { label: 'Members', value: 'members' },
-          { label: 'Analytics', value: 'analytics' }
-        ]}
-      />
+      <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="network">Network</TabsTrigger>
+          <TabsTrigger value="members">Members</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {activeTab === 'overview' && (
-          <>
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="p-4">
               <h3 className="text-lg font-semibold">Total Members</h3>
               <p className="text-3xl font-bold">{getGroupMetrics().totalMembers}</p>
@@ -183,123 +229,143 @@ export default function LeaderDashboard({ groupId, groupName }: LeaderDashboardP
               <h3 className="text-lg font-semibold">Interests Diversity</h3>
               <p className="text-3xl font-bold">{getGroupMetrics().interestsDiversity}</p>
             </Card>
-          </>
-        )}
-      </div>
+          </div>
+        </TabsContent>
 
-      {activeTab === 'network' && networkData && (
-        <Card className="p-4">
-          <Plot
-            data={[
-              {
-                type: 'scatter',
-                mode: 'markers+text',
-                x: networkData.nodes.map((node: any) => node.x),
-                y: networkData.nodes.map((node: any) => node.y),
-                text: networkData.nodes.map((node: any) => node.name),
-                marker: {
-                  size: networkData.nodes.map((node: any) => node.size),
-                  color: 'lightblue'
-                }
-              },
-              {
-                type: 'scatter',
-                mode: 'lines',
-                x: networkData.edges.flatMap((edge: any) => [
-                  networkData.nodes.find((n: any) => n.id === edge.source).x,
-                  networkData.nodes.find((n: any) => n.id === edge.target).x,
-                  null
-                ]),
-                y: networkData.edges.flatMap((edge: any) => [
-                  networkData.nodes.find((n: any) => n.id === edge.source).y,
-                  networkData.nodes.find((n: any) => n.id === edge.target).y,
-                  null
-                ]),
-                line: {
-                  width: networkData.edges.map((edge: any) => edge.weight * 3)
-                }
-              }
-            ]}
-            layout={{
-              title: 'Group Network Visualization',
-              showlegend: false,
-              hovermode: 'closest',
-              margin: { b: 20, l: 5, r: 5, t: 40 },
-              xaxis: { showgrid: false, zeroline: false, showticklabels: false },
-              yaxis: { showgrid: false, zeroline: false, showticklabels: false },
-              width: 800,
-              height: 600
-            }}
-            config={{ responsive: true }}
-          />
-        </Card>
-      )}
+        <TabsContent value="network">
+          {networkData && (
+            <Card className="p-4">
+              <Plot
+                data={[
+                  {
+                    type: 'scatter',
+                    mode: 'text+markers' as const,
+                    x: networkData.nodes.map((node) => node.x),
+                    y: networkData.nodes.map((node) => node.y),
+                    text: networkData.nodes.map((node) => node.name),
+                    textposition: 'bottom center' as const,
+                    marker: {
+                      size: networkData.nodes.map((node) => node.size),
+                      color: '#3b82f6'
+                    },
+                    hoverinfo: 'text' as const
+                  } as unknown as Partial<Data>,
+                  {
+                    type: 'scatter',
+                    mode: 'lines' as const,
+                    x: networkData.edges.flatMap((edge) => {
+                      const sourceNode = networkData.nodes.find((n) => n.id === edge.source);
+                      const targetNode = networkData.nodes.find((n) => n.id === edge.target);
+                      return sourceNode && targetNode ? [sourceNode.x, targetNode.x, null] : [];
+                    }),
+                    y: networkData.edges.flatMap((edge) => {
+                      const sourceNode = networkData.nodes.find((n) => n.id === edge.source);
+                      const targetNode = networkData.nodes.find((n) => n.id === edge.target);
+                      return sourceNode && targetNode ? [sourceNode.y, targetNode.y, null] : [];
+                    }),
+                    line: {
+                      color: '#94a3b8',
+                      width: 1
+                    },
+                    hoverinfo: 'none' as const
+                  } as unknown as Partial<Data>
+                ]}
+                layout={{
+                  title: 'Member Connections',
+                  showlegend: false,
+                  hovermode: 'closest' as const,
+                  margin: { b: 40, l: 40, r: 40, t: 40 },
+                  xaxis: { showgrid: false, zeroline: false, showticklabels: false },
+                  yaxis: { showgrid: false, zeroline: false, showticklabels: false },
+                  width: 800,
+                  height: 600,
+                  paper_bgcolor: 'rgba(0,0,0,0)',
+                  plot_bgcolor: 'rgba(0,0,0,0)'
+                } as Partial<Layout>}
+                config={{ responsive: true, displayModeBar: false } as Partial<Config>}
+              />
+            </Card>
+          )}
+        </TabsContent>
 
-      {activeTab === 'members' && (
-        <Card className="p-4">
-          <table className="min-w-full">
-            <thead>
-              <tr>
-                <th className="text-left">Name</th>
-                <th className="text-left">Skills</th>
-                <th className="text-left">Interests</th>
-                <th className="text-left">Last Active</th>
-              </tr>
-            </thead>
-            <tbody>
-              {members.map(member => (
-                <tr key={member.id}>
-                  <td>{member.name}</td>
-                  <td>{member.skills.join(', ')}</td>
-                  <td>{member.interests.join(', ')}</td>
-                  <td>{new Date(member.lastActive).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
-      )}
-
-      {activeTab === 'analytics' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <TabsContent value="members">
           <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-4">Skills Distribution</h3>
-            <Plot
-              data={[{
-                type: 'bar',
-                x: Array.from(new Set(members.flatMap(m => m.skills))),
-                y: Array.from(new Set(members.flatMap(m => m.skills)))
-                  .map(skill => 
-                    members.filter(m => m.skills.includes(skill)).length
-                  )
-              }]}
-              layout={{
-                margin: { t: 20 },
-                height: 300
-              }}
-              config={{ responsive: true }}
-            />
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skills</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interests</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {members.map(member => (
+                    <tr key={member.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{member.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.skills.join(', ')}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.interests.join(', ')}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(member.lastActive).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </Card>
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-4">Interests Distribution</h3>
-            <Plot
-              data={[{
-                type: 'bar',
-                x: Array.from(new Set(members.flatMap(m => m.interests))),
-                y: Array.from(new Set(members.flatMap(m => m.interests)))
-                  .map(interest => 
-                    members.filter(m => m.interests.includes(interest)).length
-                  )
-              }]}
-              layout={{
-                margin: { t: 20 },
-                height: 300
-              }}
-              config={{ responsive: true }}
-            />
-          </Card>
-        </div>
-      )}
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="p-4">
+              <h3 className="text-lg font-semibold mb-4">Skills Distribution</h3>
+              <Plot
+                data={[{
+                  type: 'bar',
+                  x: Array.from(new Set(members.flatMap(m => m.skills))),
+                  y: Array.from(new Set(members.flatMap(m => m.skills)))
+                    .map(skill => 
+                      members.filter(m => m.skills.includes(skill)).length
+                    ),
+                  marker: { color: '#3b82f6' }
+                } as Partial<Data>]}
+                layout={{
+                  margin: { t: 20, r: 20 },
+                  height: 300,
+                  paper_bgcolor: 'rgba(0,0,0,0)',
+                  plot_bgcolor: 'rgba(0,0,0,0)',
+                  xaxis: { tickangle: -45 }
+                } as Partial<Layout>}
+                config={{ responsive: true, displayModeBar: false } as Partial<Config>}
+              />
+            </Card>
+            <Card className="p-4">
+              <h3 className="text-lg font-semibold mb-4">Interests Distribution</h3>
+              <Plot
+                data={[{
+                  type: 'bar',
+                  x: Array.from(new Set(members.flatMap(m => m.interests))),
+                  y: Array.from(new Set(members.flatMap(m => m.interests)))
+                    .map(interest => 
+                      members.filter(m => m.interests.includes(interest)).length
+                    ),
+                  marker: { color: '#3b82f6' }
+                } as Partial<Data>]}
+                layout={{
+                  margin: { t: 20, r: 20 },
+                  height: 300,
+                  paper_bgcolor: 'rgba(0,0,0,0)',
+                  plot_bgcolor: 'rgba(0,0,0,0)',
+                  xaxis: { tickangle: -45 }
+                } as Partial<Layout>}
+                config={{ responsive: true, displayModeBar: false } as Partial<Config>}
+              />
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 } 

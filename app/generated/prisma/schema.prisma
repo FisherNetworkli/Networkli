@@ -10,6 +10,29 @@ datasource db {
   schemas  = ["auth", "public"]
 }
 
+model Interest {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String         @unique
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @default(now()) @updatedAt @map("updated_at")
+  UserInterest UserInterest[]
+
+  @@schema("public")
+}
+
+model UserInterest {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  interestId String   @map("interest_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+  user       User     @relation(fields: [userId], references: [id])
+  interest   Interest @relation(fields: [interestId], references: [id])
+
+  @@unique([userId, interestId])
+  @@schema("public")
+}
+
 model Account {
   id                String  @id
   userId            String
@@ -30,7 +53,7 @@ model Account {
 }
 
 model BlogPost {
-  id        String   @id
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   title     String
   slug      String   @unique
   content   String
@@ -42,29 +65,29 @@ model BlogPost {
   author    String
   date      DateTime @default(now())
   published Boolean  @default(false)
-  userId    String
+  userId    String   @db.Uuid
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @default(now()) @updatedAt
   User      User     @relation(fields: [userId], references: [id])
 
   @@schema("public")
 }
 
 model ContactSubmission {
-  id        String        @id
+  id        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name      String
   email     String
   subject   String
   message   String
   status    ContactStatus @default(UNREAD)
   createdAt DateTime      @default(now())
-  updatedAt DateTime
+  updatedAt DateTime      @default(now()) @updatedAt
 
   @@schema("public")
 }
 
 model JobApplication {
-  id          String            @id
+  id          String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String
   email       String
   phone       String
@@ -74,7 +97,7 @@ model JobApplication {
   coverLetter String?
   status      ApplicationStatus @default(PENDING)
   createdAt   DateTime          @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime          @default(now()) @updatedAt
 
   @@schema("public")
 }
@@ -90,16 +113,18 @@ model Session {
 }
 
 model User {
-  id            String     @id
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String?
-  email         String?    @unique
+  email         String?        @unique
   emailVerified DateTime?
   image         String?
   password      String?
-  role          Role       @default(USER)
+  role          Role           @default(USER)
   Account       Account[]
   BlogPost      BlogPost[]
   Session       Session[]
+  Content       Content[]
+  UserInterest  UserInterest[]
 
   @@schema("public")
 }
@@ -110,6 +135,23 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+  @@schema("public")
+}
+
+model Content {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String
+  slug        String    @unique
+  content     String
+  type        String
+  status      String    @default("DRAFT")
+  tags        String[]  @default([])
+  authorId    String    @map("author_id") @db.Uuid
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+  author      User      @relation(fields: [authorId], references: [id])
+
   @@schema("public")
 }
 

@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
 import Link from 'next/link';
+import { AuthError } from '@supabase/supabase-js';
+import { supabase } from '@/utils/supabase';
 
 export default function SignInForm() {
   const router = useRouter();
@@ -11,7 +12,7 @@ export default function SignInForm() {
     email: '',
     password: '',
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,28 +21,83 @@ export default function SignInForm() {
       ...prev,
       [name]: value
     }));
+    setError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError(null);
     setLoading(true);
 
     try {
-      const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        throw new Error(result.error);
+      // First, check if Supabase is properly initialized
+      if (!supabase.auth) {
+        throw new Error('Supabase client not properly initialized');
       }
 
-      // Redirect to dashboard on success
+      // Log the attempt
+      console.log('Attempting to sign in...', {
+        email: formData.email,
+        url: process.env.NEXT_PUBLIC_SUPABASE_URL
+      });
+
+      // Try to get the current session first
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log('Current session:', sessionData);
+
+      // Attempt sign in
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      // Log the complete response for debugging
+      console.log('Sign in response:', {
+        data,
+        error: signInError ? {
+          message: signInError.message,
+          status: signInError.status,
+          name: signInError.name
+        } : null
+      });
+
+      if (signInError) {
+        throw signInError;
+      }
+
+      if (!data?.user) {
+        throw new Error('No user data returned');
+      }
+
+      // Clear form and redirect
+      setFormData({ email: '', password: '' });
+      router.refresh();
       router.push('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid email or password');
+      console.error('Detailed error:', err);
+      
+      if (err instanceof AuthError) {
+        switch (err.message) {
+          case 'Invalid login credentials':
+            setError('Invalid email or password');
+            break;
+          case 'Database error querying schema':
+            setError('Authentication system is temporarily unavailable. Please try again in a few minutes. If the problem persists, contact support.');
+            // Log additional details for debugging
+            console.error('Schema error details:', {
+              status: err.status,
+              name: err.name,
+              stack: err.stack
+            });
+            break;
+          default:
+            setError(`Authentication error: ${err.message}`);
+        }
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
