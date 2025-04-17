@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import Link from 'next/link';
 
 interface Event {
   id: string;
@@ -142,12 +143,12 @@ export default function EventsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Upcoming Events</h1>
-        <button
+        <Link
+          href="/discover?tab=events"
           className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
-          onClick={() => alert('Event registration coming soon!')}
         >
           Find Events
-        </button>
+        </Link>
       </div>
 
       {error && (
@@ -184,12 +185,12 @@ export default function EventsPage() {
                 <span className="font-medium">Organizer:</span> {event.organizer_name}
               </p>
               <p className="text-gray-700 mb-6 line-clamp-3">{event.description}</p>
-              <button
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded text-sm w-full"
-                onClick={() => alert(`Details for event "${event.title}" coming soon!`)}
+              <Link
+                href={`/events/${event.id}`}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded text-sm w-full block text-center"
               >
                 View Details
-              </button>
+              </Link>
             </div>
           </div>
         ))}

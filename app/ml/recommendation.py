@@ -9,6 +9,7 @@ underlying implementation (simple attribute matching or machine learning).
 import logging
 from typing import List, Dict, Any, Optional
 from supabase import Client
+import random
 
 # Import the simple recommendation service using a relative path
 from .services.simple_recommendation import create_recommendation_service
@@ -46,6 +47,84 @@ class RecommendationEngine:
             except Exception as e:
                 logger.warning(f"Failed to initialize ML-based recommendation: {e}")
     
+    async def _is_demo_mode_enabled(self) -> bool:
+        """Check if demo mode is enabled in system settings."""
+        try:
+            result = await self.supabase.table("system_settings").select("*").eq("key", "demo_mode_enabled").single().execute()
+            if result.data and result.data.get("value") == "true":
+                return True
+            return False
+        except Exception as e:
+            logger.warning(f"Error checking demo mode status: {e}")
+            return False
+    
+    async def _get_celebrity_recommendations(self, user_id: str, limit: int, include_reason: bool = True) -> List[Dict[str, Any]]:
+        """Get recommendations prioritizing celebrity profiles for demo mode.
+        
+        Args:
+            user_id: ID of the user to get recommendations for
+            limit: Maximum number of recommendations to return
+            include_reason: Whether to include a reason for each recommendation
+            
+        Returns:
+            List of celebrity profile recommendations
+        """
+        try:
+            # Get user profile to match with celebrities
+            user_profile_result = await self.supabase.table("profiles").select("*").eq("id", user_id).single().execute()
+            user_profile = user_profile_result.data if user_profile_result.data else {}
+            
+            # Get celebrity profiles
+            celebrity_result = await self.supabase.table("profiles").select("*").eq("is_celebrity", True).limit(limit).execute()
+            celebrities = celebrity_result.data if celebrity_result.data else []
+            
+            if not celebrities:
+                logger.warning("No celebrity profiles found for demo mode")
+                return []
+            
+            # Add personalized reasons based on user attributes
+            if include_reason and user_profile:
+                for celebrity in celebrities:
+                    # Find matching attributes
+                    matching_attrs = {}
+                    
+                    # Check for matching industry
+                    if user_profile.get("industry") and celebrity.get("industry"):
+                        if user_profile["industry"].lower() == celebrity["industry"].lower():
+                            matching_attrs["industry"] = celebrity["industry"]
+                    
+                    # Check for matching location
+                    if user_profile.get("location") and celebrity.get("location"):
+                        if user_profile["location"].lower() == celebrity["location"].lower():
+                            matching_attrs["location"] = celebrity["location"]
+                    
+                    # Check for matching skills or interests
+                    if user_profile.get("skills") and celebrity.get("skills"):
+                        user_skills = set(user_profile["skills"]) if isinstance(user_profile["skills"], list) else set()
+                        celeb_skills = set(celebrity["skills"]) if isinstance(celebrity["skills"], list) else set()
+                        matching_skills = user_skills.intersection(celeb_skills)
+                        if matching_skills:
+                            skill = next(iter(matching_skills))
+                            matching_attrs["skill"] = skill
+                    
+                    # Generate personalized reason
+                    if matching_attrs:
+                        celebrity["reason"] = self.simple_recommender._generate_recommendation_reason(matching_attrs)
+                    else:
+                        celebrity["reason"] = f"Connect with {celebrity['full_name']}, a leader in {celebrity['industry']}."
+                        
+                    # Add demo flag
+                    celebrity["is_demo"] = True
+                    
+            # Shuffle to get different celebrities each time
+            random.shuffle(celebrities)
+            
+            return celebrities[:limit]
+            
+        except Exception as e:
+            logger.error(f"Error getting celebrity recommendations: {e}", exc_info=True)
+            return []
+    
     async def get_recommendations(self, 
                                 user_id: str, 
                                 algorithm: str = "auto",
@@ -64,6 +143,78 @@ class RecommendationEngine:
         Returns:
             Dictionary with recommendations and metadata
         """
+        # Check if demo mode is enabled
+        demo_mode = await self._is_demo_mode_enabled()
+        
+        # In demo mode, prioritize celebrity recommendations
+        if demo_mode:
+            logger.info(f"Demo mode enabled, prioritizing celebrity recommendations for user {user_id}")
+            
+            # Get celebrity recommendations
+            celebrity_recommendations = await self._get_celebrity_recommendations(
+                user_id=user_id,
+                limit=limit,
+                include_reason=include_reason
+            )
+            
+            if celebrity_recommendations:
+                # Ensure at least 60% of recommendations are celebrities in demo mode
+                celebrity_count = max(min(int(limit * 0.6), len(celebrity_recommendations)), 2)
+                regular_count = limit - celebrity_count
+                
+                # Get regular recommendations for the remaining slots
+                regular_recommendations = []
+                if regular_count > 0:
+                    # Determine which algorithm to use for regular recommendations
+                    use_ml = False
+                    if algorithm == "ml" and self.ml_recommender is not None:
+                        use_ml = True
+                    elif algorithm == "auto" and self.ml_recommender is not None:
+                        use_ml = True
+                    
+                    try:
+                        if use_ml:
+                            regular_recommendations = await self.ml_recommender.get_recommendations(
+                                user_id=user_id,
+                                limit=regular_count,
+                                exclude_connected=exclude_connected
+                            )
+                            
+                            if include_reason and regular_recommendations:
+                                regular_recommendations = await self._add_reasons_to_ml_recommendations(
+                                    user_id, regular_recommendations
+                                )
+                        else:
+                            regular_recommendations = await self.simple_recommender.get_user_recommendations(
+                                user_id=user_id,
+                                limit=regular_count,
+                                exclude_connected=exclude_connected,
+                                include_reason=include_reason
+                            )
+                    except Exception as e:
+                        logger.error(f"Error getting regular recommendations in demo mode: {e}", exc_info=True)
+                
+                # Combine celebrity and regular recommendations
+                combined_recommendations = celebrity_recommendations[:celebrity_count]
+                
+                # If we have regular recommendations, add them
+                if regular_recommendations:
+                    combined_recommendations.extend(regular_recommendations)
+                
+                # Shuffle slightly but ensure first 1-2 are celebrities
+                first_celebs = combined_recommendations[:2]
+                rest = combined_recommendations[2:] if len(combined_recommendations) > 2 else []
+                random.shuffle(rest)
+                final_recommendations = first_celebs + rest
+                
+                return {
+                    "recommendations": final_recommendations,
+                    "count": len(final_recommendations),
+                    "algorithm_version": "demo-mode-celebrity-priority",
+                    "demo_mode": True
+                }
+        
+        # Continue with normal recommendation process if not in demo mode or no celebrities
         # Determine which algorithm to use
         use_ml = False
         algorithm_version = "simple-attribute-matching-v1"
@@ -72,9 +223,11 @@ class RecommendationEngine:
             use_ml = True
             algorithm_version = "ml-graph-neural-network-v1"
         elif algorithm == "auto" and self.ml_recommender is not None:
-            # Check if we have enough data for ML
-            # For now, always default to simple matching
-            use_ml = False
+            # Use ML algorithm when 'auto' is selected and ML is available
+            use_ml = True
+            algorithm_version = "ml-graph-neural-network-v1"
+            # Future: Could add more sophisticated logic here to choose 
+            # based on data availability, A/B testing flags, etc.
         
         # Get recommendations using the selected algorithm
         recommendations = []
@@ -104,7 +257,8 @@ class RecommendationEngine:
             return {
                 "recommendations": recommendations,
                 "count": len(recommendations),
-                "algorithm_version": algorithm_version
+                "algorithm_version": algorithm_version,
+                "demo_mode": demo_mode
             }
         except Exception as e:
             logger.error(f"Error getting recommendations for {user_id}: {e}", exc_info=True)
@@ -121,13 +275,15 @@ class RecommendationEngine:
                 return {
                     "recommendations": recommendations,
                     "count": len(recommendations),
-                    "algorithm_version": "simple-attribute-matching-v1 (fallback)"
+                    "algorithm_version": "simple-attribute-matching-v1 (fallback)",
+                    "demo_mode": demo_mode
                 }
             else:
                 return {
                     "recommendations": [],
                     "count": 0,
                     "algorithm_version": algorithm_version,
+                    "demo_mode": demo_mode,
                     "error": str(e)
                 }
     

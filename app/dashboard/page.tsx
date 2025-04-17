@@ -12,6 +12,9 @@ import { ProfileViews } from '@/app/dashboard/components/ProfileViews'
 import { OrganizerProfileViews } from '@/app/dashboard/components/OrganizerProfileViews'
 import { User } from '@supabase/supabase-js'
 import Link from 'next/link';
+import { Loader2, Users, UserCheck, Lightbulb, Sparkles, Calendar, Tv } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import toast from 'react-hot-toast';
 
 // Define types for recommendations
 interface Connection {
@@ -42,12 +45,69 @@ interface Recommendations {
   skills: string[];
 }
 
+// --- Define types for recommendations from API --- 
+// Copied from profile page - adjust if API response differs
+type ApiRecommendation = {
+  id: string;
+  name?: string; // For profiles/groups
+  title?: string; // For events/profiles
+  avatar_url?: string; // For profiles
+  reason?: string; // Optional: Why was this recommended?
+  score?: number; // Optional: Recommendation score
+  // Add other relevant fields from your API response
+  // Event-specific fields if needed from API
+  date?: string;
+  location?: string;
+  // Group-specific fields if needed from API
+  members?: number;
+  category?: string;
+};
+
+// Keep old structure for UI compatibility for now
+interface OldConnection {
+  id: string; // Use string ID from API
+  name: string;
+  title: string;
+  avatar: string | null;
+}
+
+interface OldGroup {
+  id: string; // Use string ID from API
+  name: string;
+  members: number;
+  category: string;
+}
+
+interface OldEvent {
+  id: string; // Use string ID from API
+  name: string;
+  date: string;
+  location: string;
+}
+
+interface OldRecommendations {
+  connections: OldConnection[];
+  groups: OldGroup[];
+  events: OldEvent[];
+  skills: string[]; // Keep skills as is for now
+}
+// --- End Types --- 
+
 export default function DashboardPage() {
   const [helpQuestion, setHelpQuestion] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [recommendations, setRecommendations] = useState<Recommendations>({
+  
+  // --- State for API Recommendations ---
+  const [profileRecommendations, setProfileRecommendations] = useState<ApiRecommendation[]>([]);
+  const [groupRecommendations, setGroupRecommendations] = useState<ApiRecommendation[]>([]);
+  const [eventRecommendations, setEventRecommendations] = useState<ApiRecommendation[]>([]);
+  const [recommendationLoading, setRecommendationLoading] = useState(true); // Start loading true
+  // --- End State for API Recommendations ---
+  
+  // Existing state for UI - will be populated from new state
+  const [uiRecommendations, setUiRecommendations] = useState<OldRecommendations>({
     connections: [],
     groups: [],
     events: [],
@@ -82,15 +142,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchHelpQuestion = async () => {
-      const { data } = await supabase
-        .from('system_settings')
-        .select('value')
-        .eq('key', 'signup_help_question')
-        .single();
+      // TODO: Reinstate when system_settings table exists and is populated
+      // const { data } = await supabase
+      //   .from('system_settings')
+      //   .select('value')
+      //   .eq('key', 'signup_help_question')
+      //   .single();
       
-      if (data) {
-        setHelpQuestion(data.value);
-      }
+      // if (data) {
+      //   setHelpQuestion(data.value);
+      // }
+      setHelpQuestion('What are you hoping to achieve on Networkli?'); // Default question
     };
 
     fetchHelpQuestion();
@@ -98,142 +160,142 @@ export default function DashboardPage() {
 
   // Fetch recommendations
   useEffect(() => {
-    const fetchRecommendations = async () => {
+    const fetchApiRecommendations = async () => {
       if (!user) return;
       
+      setRecommendationLoading(true);
+      console.log(`[Dashboard] Fetching recommendations for logged-in user: ${user.id}`);
+
+      let accessToken: string | null = null;
       try {
-        // Fetch connections recommendations (people not yet connected)
-        const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, first_name, last_name, title, avatar_url')
-          .neq('id', user.id)
-          .limit(3);
-          
-        if (profilesError) throw profilesError;
-        
-        // Format connection recommendations
-        const connectionRecs = profiles?.map(profile => ({
-          id: profile.id,
-          name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'User',
-          title: profile.title || 'Professional',
-          avatar: profile.avatar_url
-        })) || [];
-        
-        // Fetch group recommendations
-        const { data: groups, error: groupsError } = await supabase
-          .from('groups')
-          .select('id, name, category, members:group_members(count)')
-          .limit(3);
-          
-        if (groupsError) throw groupsError;
-        
-        // Format group recommendations
-        const groupRecs = groups?.map(group => ({
-          id: group.id,
-          name: group.name || 'Group',
-          members: Array.isArray(group.members) ? group.members.length : 0,
-          category: group.category || 'General'
-        })) || [];
-        
-        // Fetch upcoming events
-        const today = new Date();
-        const { data: events, error: eventsError } = await supabase
-          .from('events')
-          .select('id, title, date, location')
-          .gte('date', today.toISOString())
-          .order('date', { ascending: true })
-          .limit(3);
-          
-        if (eventsError) throw eventsError;
-        
-        // Format event recommendations
-        const eventRecs = events?.map(event => ({
-          id: event.id,
-          name: event.title || 'Event',
-          date: event.date,
-          location: event.location || 'TBD'
-        })) || [];
-        
-        // Fetch skills recommendations from user_skills
-        const { data: skills, error: skillsError } = await supabase
-          .from('skills')
-          .select('name')
-          .limit(5);
-          
-        if (skillsError) throw skillsError;
-        
-        // Format skill recommendations
-        const skillRecs = skills?.map(skill => skill.name) || [];
-        
-        // Use real data if available, fallback to mock data for any missing categories
-        setRecommendations({
-          connections: connectionRecs.length > 0 ? connectionRecs : [
-            { id: 1, name: 'Sarah Chen', title: 'UX Designer', avatar: null },
-            { id: 2, name: 'Michael Park', title: 'Product Manager', avatar: null },
-            { id: 3, name: 'Jessica Wong', title: 'Marketing Director', avatar: null }
-          ],
-          groups: groupRecs.length > 0 ? groupRecs : [
-            { id: 1, name: 'Tech Professionals', members: 1250, category: 'Technology' },
-            { id: 2, name: 'UX/UI Designers', members: 850, category: 'Design' },
-            { id: 3, name: 'Startup Founders', members: 620, category: 'Entrepreneurship' }
-          ],
-          events: eventRecs.length > 0 ? eventRecs : [
-            { id: 1, name: 'Networking Mixer', date: '2024-07-15', location: 'San Francisco' },
-            { id: 2, name: 'Tech Conference', date: '2024-07-22', location: 'Online' },
-            { id: 3, name: 'Career Fair', date: '2024-07-30', location: 'New York' }
-          ],
-          skills: skillRecs.length > 0 ? skillRecs : [
-            'Project Management',
-            'Data Analysis',
-            'Public Speaking',
-            'UX Research',
-            'Content Strategy'
-          ]
-        });
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          accessToken = session.access_token;
+        } else {
+          throw new Error("No access token found");
+        }
       } catch (error) {
-        console.error('Error fetching recommendations:', error);
-        // Fallback to mock data in case of error
-        setRecommendations({
-          connections: [
-            { id: 1, name: 'Sarah Chen', title: 'UX Designer', avatar: null },
-            { id: 2, name: 'Michael Park', title: 'Product Manager', avatar: null },
-            { id: 3, name: 'Jessica Wong', title: 'Marketing Director', avatar: null }
-          ],
-          groups: [
-            { id: 1, name: 'Tech Professionals', members: 1250, category: 'Technology' },
-            { id: 2, name: 'UX/UI Designers', members: 850, category: 'Design' },
-            { id: 3, name: 'Startup Founders', members: 620, category: 'Entrepreneurship' }
-          ],
-          events: [
-            { id: 1, name: 'Networking Mixer', date: '2024-07-15', location: 'San Francisco' },
-            { id: 2, name: 'Tech Conference', date: '2024-07-22', location: 'Online' },
-            { id: 3, name: 'Career Fair', date: '2024-07-30', location: 'New York' }
-          ],
-          skills: [
-            'Project Management',
-            'Data Analysis',
-            'Public Speaking',
-            'UX Research',
-            'Content Strategy'
-          ]
+        console.error("[Dashboard Recs] Error getting session token:", error);
+        toast.error("Authentication error loading recommendations.");
+        setRecommendationLoading(false);
+        return;
+      }
+      
+      const headers: HeadersInit = {
+        'Authorization': `Bearer ${accessToken}`
+      };
+
+      try {
+        const recTypes: ('profile' | 'group' | 'event')[] = ['profile', 'group', 'event'];
+        const promises = recTypes.map(type => 
+          fetch(`/api/recommendations?profile_id=${user.id}&type=${type}&limit=3`, { headers })
+            .then(async res => {
+               if (!res.ok) {
+                   const errorData = await res.json().catch(() => ({})); // Try to parse error
+                   console.error(`[Dashboard Recs] API Error (${res.status}) fetching ${type}:`, errorData.error || res.statusText);
+                   return { type, data: { recommendations: [] } }; // Return empty on error
+               }
+               return res.json().then(data => ({ type, data }));
+            })
+        );
+        
+        const results = await Promise.allSettled(promises);
+        
+        const fetchedRecommendations: { [key: string]: ApiRecommendation[] } = {
+          profile: [],
+          group: [],
+          event: []
+        };
+
+        results.forEach(result => {
+          if (result.status === 'fulfilled' && result.value) {
+            const { type, data } = result.value;
+            // Basic validation of received data structure
+            if (data && Array.isArray(data.recommendations)) {
+                fetchedRecommendations[type] = data.recommendations;
+            } else {
+                 console.warn(`[Dashboard Recs] Unexpected data structure for type ${type}:`, data);
+            }
+          }
         });
+
+        console.log("[Dashboard Recs] Fetched API recommendations:", fetchedRecommendations);
+        
+        // Set the new state
+        setProfileRecommendations(fetchedRecommendations.profile);
+        setGroupRecommendations(fetchedRecommendations.group);
+        setEventRecommendations(fetchedRecommendations.event);
+
+        // --- Adapt API data to old UI state structure ---
+        const adaptedConnections: OldConnection[] = fetchedRecommendations.profile.map(p => ({
+          id: p.id,
+          name: p.name || p.title || 'User',
+          title: p.title || 'Professional',
+          avatar: p.avatar_url || null
+        }));
+
+        const adaptedGroups: OldGroup[] = fetchedRecommendations.group.map(g => ({
+          id: g.id,
+          name: g.name || 'Group',
+          members: g.members || 0, // Assuming API provides members count
+          category: g.category || 'General' // Assuming API provides category
+        }));
+
+        const adaptedEvents: OldEvent[] = fetchedRecommendations.event.map(e => ({
+          id: e.id,
+          name: e.title || 'Event',
+          date: e.date || new Date().toISOString(), // Assuming API provides date
+          location: e.location || 'TBD' // Assuming API provides location
+        }));
+        // --- End Adaptation ---
+
+        // Fetch skills separately for now (or integrate into API later)
+        let skillRecs: string[] = [];
+        try {
+          const { data: skills, error: skillsError } = await supabase
+            .from('skills') // Or perhaps 'user_skills' linked to user.id?
+            .select('name')
+            .limit(5);
+          if (skillsError) throw skillsError;
+          skillRecs = skills?.map(skill => skill.name) || [];
+        } catch(skillErr) {
+            console.error("[Dashboard Recs] Error fetching skills:", skillErr);
+        }
+
+        // Set the UI-compatible state
+        setUiRecommendations({
+          connections: adaptedConnections,
+          groups: adaptedGroups,
+          events: adaptedEvents,
+          skills: skillRecs // Keep using fetched skills
+        });
+        
+      } catch (err) {
+        console.error('[Dashboard Recs] Error fetching API recommendations:', err);
+        toast.error('Could not load recommendations');
+        // Optionally set fallback data for uiRecommendations here
+      } finally {
+        setRecommendationLoading(false);
       }
     };
 
-    fetchRecommendations();
+    fetchApiRecommendations();
   }, [user, supabase]);
 
   const handleUpdateProfile = async () => {
     setIsUpdating(true);
     try {
-      const { error } = await supabase
-        .from('system_settings')
-        .upsert({
-          key: 'signup_help_question',
-          value: helpQuestion
-        });
+      // TODO: Reinstate when system_settings table exists and is populated
+      // const { error } = await supabase
+      //   .from('system_settings')
+      //   .upsert({
+      //     key: 'signup_help_question',
+      //     value: helpQuestion
+      //   });
 
-      if (error) throw error;
+      // if (error) throw error;
+      console.log("Simulating update for help question:", helpQuestion); // Simulate update
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
       // Could add a toast notification here
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -255,6 +317,104 @@ export default function DashboardPage() {
   const renderDashboardContent = () => {
     const isPremiumUser = userRole === 'premium';
     
+    // --- Define Recommendation Section UI --- 
+    const RecommendationSection = () => (
+       !recommendationLoading && (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Suggestions For You</h2>
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {/* People Recommendations */}
+            {profileRecommendations.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center">
+                    <Users className="h-5 w-5 mr-2 text-blue-600"/> Suggested Connections
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3">
+                    {profileRecommendations.map(rec => (
+                      <li key={rec.id} className="flex items-center space-x-3 text-sm">
+                         <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                           {rec.avatar_url ? (
+                              <img src={rec.avatar_url} alt={rec.name || rec.title} className="h-full w-full rounded-full object-cover"/>
+                           ) : <UserCheck className="h-4 w-4 text-gray-500"/>}
+                         </div>
+                        <div>
+                          <Link href={`/dashboard/profile/${rec.id}?from=recommendation`} className="font-medium text-gray-800 hover:text-blue-600">
+                             {rec.name || rec.title || 'View Profile'}
+                          </Link>
+                          {rec.reason && <p className="text-xs text-gray-500 italic">({rec.reason})</p>}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+            {/* Groups Recommendations */}
+            {groupRecommendations.length > 0 && (
+              <Card>
+                 <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <Lightbulb className="h-5 w-5 mr-2 text-purple-600"/> Recommended Groups
+                    </CardTitle>
+                 </CardHeader>
+                 <CardContent>
+                   <ul className="space-y-3">
+                    {groupRecommendations.map(rec => (
+                      <li key={rec.id} className="flex items-center space-x-3 text-sm">
+                         <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                           <Sparkles className="h-4 w-4 text-gray-500"/>
+                         </div>
+                        <div>
+                          {/* TODO: Update href to actual group page */}
+                          <Link href={`#group-${rec.id}`} className="font-medium text-gray-800 hover:text-purple-600">
+                             {rec.name || 'View Group'}
+                          </Link>
+                          {rec.reason && <p className="text-xs text-gray-500 italic">({rec.reason})</p>}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                 </CardContent>
+              </Card>
+            )}
+            {/* Events Recommendations */}
+            {eventRecommendations.length > 0 && (
+              <Card>
+                 <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <Calendar className="h-5 w-5 mr-2 text-pink-600"/> Recommended Events
+                    </CardTitle>
+                 </CardHeader>
+                 <CardContent>
+                    <ul className="space-y-3">
+                    {eventRecommendations.map(rec => (
+                      <li key={rec.id} className="flex items-center space-x-3 text-sm">
+                         <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                           <Tv className="h-4 w-4 text-gray-500"/>
+                         </div>
+                        <div>
+                           {/* TODO: Update href to actual event page */}
+                           <Link href={`#event-${rec.id}`} className="font-medium text-gray-800 hover:text-pink-600">
+                             {rec.title || 'View Event'}
+                           </Link>
+                           {rec.reason && <p className="text-xs text-gray-500 italic">({rec.reason})</p>}
+                           {rec.date && <p className="text-xs text-gray-500">{new Date(rec.date).toLocaleDateString()}</p>} 
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                 </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+       )
+    );
+    // --- End Recommendation Section UI ---
+
     switch (userRole) {
       case 'organizer':
         return (
@@ -284,10 +444,16 @@ export default function DashboardPage() {
                 <ProfileCompletion user={user} />
               </div>
             </div>
+            <RecommendationSection />
           </>
         )
       case 'admin':
-        return <AdminDashboard user={user} />
+        return (
+          <>
+            <AdminDashboard user={user} />
+            <RecommendationSection />
+          </>
+        )
       case 'premium':
         return (
           <div className="space-y-8">
@@ -387,69 +553,36 @@ export default function DashboardPage() {
 
             {/* Recommendation Tabs - 3 column grid for premium users */}
             <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
-              {/* People Recommendations */}
-              <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">Recommended People</h3>
-                  <Link href="/dashboard/recommended" className="text-sm text-blue-600 hover:text-blue-800">View All</Link>
-                </div>
-                <div className="space-y-4">
-                  {recommendations.connections.map(person => (
-                    <div key={person.id} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                          {person.avatar ? (
-                            <img src={person.avatar} alt={person.name} className="w-10 h-10 rounded-full" />
-                          ) : (
-                            person.name.charAt(0)
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">{person.name}</p>
-                          <p className="text-xs text-muted-foreground">{person.title}</p>
-                        </div>
-                      </div>
-                      <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">Connect</button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Groups Recommendations */}
-              <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">Recommended Groups</h3>
-                  <Link href="/dashboard/groups" className="text-sm text-blue-600 hover:text-blue-800">View All</Link>
-                </div>
-                <div className="space-y-4">
-                  {recommendations.groups.map(group => (
-                    <div key={group.id} className="p-3 border rounded-lg hover:bg-gray-50">
-                      <h4 className="font-medium text-sm">{group.name}</h4>
-                      <p className="text-xs text-muted-foreground mb-2">{group.category} • {group.members} members</p>
-                      <button className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">Join Group</button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Events Recommendations */}
-              <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">Upcoming Events</h3>
-                  <Link href="/dashboard/events" className="text-sm text-blue-600 hover:text-blue-800">View All</Link>
-                </div>
-                <div className="space-y-4">
-                  {recommendations.events.map(event => (
-                    <div key={event.id} className="p-3 border rounded-lg hover:bg-gray-50">
-                      <h4 className="font-medium text-sm">{event.name}</h4>
-                      <p className="text-xs text-muted-foreground mb-2">
-                        {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {event.location}
-                      </p>
-                      <button className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">RSVP</button>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              {recommendationLoading ? (
+                 <div className="flex justify-center items-center p-6 col-span-1 lg:col-span-3">
+                   <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                   <span className="ml-2">Loading suggestions...</span>
+                 </div>
+             ) : (
+                <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+                   {/* People Recommendations */} 
+                  {profileRecommendations.length > 0 && (
+                    <Card>
+                       <CardHeader> <CardTitle className="text-lg flex items-center"><Users className="h-5 w-5 mr-2 text-blue-600"/> Suggested Connections</CardTitle></CardHeader>
+                       <CardContent> <ul className="space-y-3"> {profileRecommendations.map(rec => (<li key={rec.id} className="flex items-center space-x-3 text-sm"> <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center"> {rec.avatar_url ? (<img src={rec.avatar_url} alt={rec.name || rec.title} className="h-full w-full rounded-full object-cover"/>) : <UserCheck className="h-4 w-4 text-gray-500"/>} </div> <div> <Link href={`/dashboard/profile/${rec.id}?from=recommendation`} className="font-medium text-gray-800 hover:text-blue-600"> {rec.name || rec.title || 'View Profile'} </Link> {rec.reason && <p className="text-xs text-gray-500 italic">({rec.reason})</p>} </div> </li>))} </ul> </CardContent>
+                    </Card>
+                  )}
+                   {/* Groups Recommendations */} 
+                   {groupRecommendations.length > 0 && (
+                     <Card>
+                       <CardHeader><CardTitle className="text-lg flex items-center"><Lightbulb className="h-5 w-5 mr-2 text-purple-600"/> Recommended Groups</CardTitle></CardHeader>
+                       <CardContent><ul className="space-y-3">{groupRecommendations.map(rec => (<li key={rec.id} className="flex items-center space-x-3 text-sm"><div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center"><Sparkles className="h-4 w-4 text-gray-500"/></div><div><Link href={`#group-${rec.id}`} className="font-medium text-gray-800 hover:text-purple-600">{rec.name || 'View Group'}</Link>{rec.reason && <p className="text-xs text-gray-500 italic">({rec.reason})</p>}</div></li>))}</ul></CardContent>
+                     </Card>
+                   )}
+                    {/* Events Recommendations */} 
+                    {eventRecommendations.length > 0 && (
+                       <Card>
+                          <CardHeader><CardTitle className="text-lg flex items-center"><Calendar className="h-5 w-5 mr-2 text-pink-600"/> Recommended Events</CardTitle></CardHeader>
+                          <CardContent><ul className="space-y-3">{eventRecommendations.map(rec => (<li key={rec.id} className="flex items-center space-x-3 text-sm"><div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center"><Tv className="h-4 w-4 text-gray-500"/></div><div><Link href={`#event-${rec.id}`} className="font-medium text-gray-800 hover:text-pink-600">{rec.title || 'View Event'}</Link>{rec.reason && <p className="text-xs text-gray-500 italic">({rec.reason})</p>}{rec.date && <p className="text-xs text-gray-500">{new Date(rec.date).toLocaleDateString()}</p>}</div></li>))}</ul></CardContent>
+                       </Card>
+                    )}
+                 </div>
+             )}
             </div>
           </div>
         )
@@ -504,6 +637,7 @@ export default function DashboardPage() {
                 </button>
               </div>
             </div>
+            <RecommendationSection />
           </div>
         )
     }
@@ -511,7 +645,9 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto">
-      {renderDashboardContent()}
+      <div className="mt-6">
+         {renderDashboardContent()}
+      </div>
     </div>
   );
 } 

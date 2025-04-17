@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import Link from 'next/link';
 
 interface Group {
   id: string;
@@ -153,12 +154,12 @@ export default function GroupsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Professional Groups</h1>
-        <button
+        <Link
+          href="/discover?tab=groups"
           className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
-          onClick={() => alert('Group discovery coming soon!')}
         >
           Discover Groups
-        </button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -192,12 +193,12 @@ export default function GroupsPage() {
                 <span className="font-medium">Members:</span> {(group.member_count || 0).toLocaleString()}
               </p>
               <p className="text-gray-700 mb-6 line-clamp-3">{group.description}</p>
-              <button
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded text-sm w-full"
-                onClick={() => alert(`Details for group "${group.name}" coming soon!`)}
+              <Link
+                href={`/groups/${group.id}`}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded text-sm w-full block text-center"
               >
                 View Group
-              </button>
+              </Link>
             </div>
           </div>
         ))}

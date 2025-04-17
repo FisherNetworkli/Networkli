@@ -1,0 +1,119 @@
+{
+  "timestamp": "2025-04-16T14:52:44.399665",
+  "results": {
+    "comparison": {
+      "user": {
+        "algorithm": "auto",
+        "total_users_tested": 3,
+        "total_recommendations": 19,
+        "avg_recommendation_count": 6.333333333333333,
+        "avg_precision_at_5": 0.39999999999999997,
+        "avg_recall_at_5": 0.4761904761904762,
+        "avg_diversity": 0.7428571428571429,
+        "avg_explanation_quality": 0.8533333333333332,
+        "response_times": [
+          0.013175010681152344,
+          0.1049039363861084,
+          0.07579493522644043
+        ],
+        "avg_response_time": 0.06462462743123372
+      },
+      "group": {
+        "total_users_tested": 3,
+        "total_recommendations": 4,
+        "avg_recommendation_count": 1.3333333333333333,
+        "avg_precision_at_5": 0.3333333333333333,
+        "avg_recall_at_5": 0.2222222222222222,
+        "avg_diversity": 0.2333333333333333,
+        "avg_explanation_quality": 0.3333333333333333,
+        "response_times": [
+          4.6253204345703125e-05,
+          3.0994415283203125e-05,
+          6.008148193359375e-05
+        ],
+        "avg_response_time": 4.57763671875e-05,
+        "relevance_analysis": {
+          "count": 4,
+          "min_score": 0.25,
+          "max_score": 0.30000000000000004,
+          "avg_score": 0.275,
+          "median_score": 0.3,
+          "distribution": {
+            "very_high": {
+              "count": 0,
+              "percentage": 0.0
+            },
+            "high": {
+              "count": 0,
+              "percentage": 0.0
+            },
+            "medium": {
+              "count": 0,
+              "percentage": 0.0
+            },
+            "low": {
+              "count": 4,
+              "percentage": 100.0
+            },
+            "very_low": {
+              "count": 0,
+              "percentage": 0.0
+            }
+          },
+          "reason_categories": {
+            "interest-based": 4
+          }
+        }
+      },
+      "event": {
+        "total_users_tested": 3,
+        "total_recommendations": 13,
+        "avg_recommendation_count": 4.333333333333333,
+        "avg_precision_at_5": 0.7000000000000001,
+        "avg_recall_at_5": 0.7666666666666666,
+        "avg_diversity": 0.7111111111111112,
+        "avg_explanation_quality": 1.0,
+        "response_times": [
+          0.00011301040649414062,
+          6.818771362304688e-05,
+          6.866455078125e-05
+        ],
+        "avg_response_time": 8.328755696614583e-05,
+        "relevance_analysis": {
+          "count": 13,
+          "min_score": 0.15000000000000002,
+          "max_score": 0.24000000000000002,
+          "avg_score": 0.20692307692307693,
+          "median_score": 0.2,
+          "distribution": {
+            "very_high": {
+              "count": 0,
+              "percentage": 0.0
+            },
+            "high": {
+              "count": 0,
+              "percentage": 0.0
+            },
+            "medium": {
+              "count": 0,
+              "percentage": 0.0
+            },
+            "low": {
+              "count": 7,
+              "percentage": 53.84615384615385
+            },
+            "very_low": {
+              "count": 6,
+              "percentage": 46.15384615384615
+            }
+          },
+          "reason_categories": {
+            "other": 8,
+            "connection-based": 2,
+            "interest-based": 3
+          }
+        }
+      }
+    }
+  }
+}

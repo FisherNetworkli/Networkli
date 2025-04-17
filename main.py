@@ -30,6 +30,13 @@ import asyncio
 from app.ml.recommendation import create_recommendation_engine # Use the consolidated engine
 from settings import settings # Import settings from root settings.py
 
+# --- New Services Imports ---
+from app.ml.services.group_recommendation import create_group_recommendation_service
+from app.ml.services.event_recommendation import create_event_recommendation_service
+
+# --- Import the new alignment module
+from app.ml.alignment import create_member_alignment_service
+
 # --- Configure Logging ---
 logging.basicConfig(
     level=logging.INFO,
@@ -778,6 +785,274 @@ async def update_connection_status(connection_id: str, request: Request, status:
     # Implementation...
     logger.info(f"Placeholder: Update connection {connection_id} to status {status}")
     return {"message": "Connection status update endpoint not fully implemented"}
+
+# --- Group Recommendation Endpoint ---
+@app.get("/group-recommendations/{profile_id}")
+async def get_group_recommendations(
+    profile_id: str,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    limit: int = Query(10, ge=1, le=50),
+    exclude_joined: bool = True,
+    include_reason: bool = True
+):
+    """Get personalized group recommendations."""
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database service unavailable")
+
+    current_user_id = await get_current_user(request)
+    # Optional: Check if the requestor matches the profile_id or is admin
+    # if current_user_id != profile_id and not is_admin(current_user_id):
+    #    raise HTTPException(status_code=403, detail="Forbidden")
+
+    if current_user_id:
+        background_tasks.add_task(
+            log_interaction,
+            supabase_client=supabase,
+            user_id=current_user_id,
+            interaction_type="VIEW_GROUP_RECOMMENDATIONS",
+            target_entity_type="GROUP_RECOMMENDATIONS",
+            target_entity_id=profile_id,
+            metadata={"limit": limit, "exclude_joined": exclude_joined}
+        )
+
+    try:
+        group_recommendation_service = create_group_recommendation_service(supabase)
+        recommendations_result = await group_recommendation_service.get_group_recommendations(
+            user_id=profile_id,
+            limit=limit,
+            exclude_joined=exclude_joined,
+            include_reason=include_reason
+        )
+        return {
+            "group_recommendations": recommendations_result,
+            "count": len(recommendations_result)
+        }
+    except Exception as e:
+        logger.error(f"Error getting group recommendations for {profile_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to retrieve group recommendations")
+
+# --- Event Recommendation Endpoint ---
+@app.get("/event-recommendations/{profile_id}")
+async def get_event_recommendations(
+    profile_id: str,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    limit: int = Query(10, ge=1, le=50),
+    exclude_registered: bool = True,
+    include_reason: bool = True,
+    include_past_events: bool = False
+):
+    """Get personalized event recommendations."""
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database service unavailable")
+
+    current_user_id = await get_current_user(request)
+    # Optional: Check if the requestor matches the profile_id or is admin
+    # if current_user_id != profile_id and not is_admin(current_user_id):
+    #    raise HTTPException(status_code=403, detail="Forbidden")
+
+    if current_user_id:
+        background_tasks.add_task(
+            log_interaction,
+            supabase_client=supabase,
+            user_id=current_user_id,
+            interaction_type="VIEW_EVENT_RECOMMENDATIONS",
+            target_entity_type="EVENT_RECOMMENDATIONS",
+            target_entity_id=profile_id,
+            metadata={
+                "limit": limit, 
+                "exclude_registered": exclude_registered,
+                "include_past_events": include_past_events
+            }
+        )
+
+    try:
+        event_recommendation_service = create_event_recommendation_service(supabase)
+        recommendations_result = await event_recommendation_service.get_event_recommendations(
+            user_id=profile_id,
+            limit=limit,
+            exclude_registered=exclude_registered,
+            include_reason=include_reason,
+            include_past_events=include_past_events
+        )
+        return {
+            "event_recommendations": recommendations_result,
+            "count": len(recommendations_result)
+        }
+    except Exception as e:
+        logger.error(f"Error getting event recommendations for {profile_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to retrieve event recommendations")
+
+# --- Group Recommendation Click Endpoint ---
+@app.post("/group-recommendations/click")
+async def record_group_recommendation_click(
+    click_info: RecommendationClickInfo,
+    request: Request,
+    background_tasks: BackgroundTasks
+):
+    """Records when a group recommendation is clicked."""
+    current_user_id = await get_current_user(request)
+    if not current_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    metadata = {
+        "group_id": click_info.recommendation_id,
+        "source_page": click_info.source_page,
+        "position": click_info.position
+    }
+    background_tasks.add_task(
+        log_interaction,
+        supabase_client=supabase,
+        user_id=current_user_id,
+        interaction_type="GROUP_RECOMMENDATION_CLICK",
+        target_entity_type="GROUP",
+        target_entity_id=click_info.recommendation_id,
+        metadata=metadata
+    )
+    return {"success": True, "message": "Group recommendation click recorded"}
+
+# --- Event Recommendation Click Endpoint ---
+@app.post("/event-recommendations/click")
+async def record_event_recommendation_click(
+    click_info: RecommendationClickInfo,
+    request: Request,
+    background_tasks: BackgroundTasks
+):
+    """Records when an event recommendation is clicked."""
+    current_user_id = await get_current_user(request)
+    if not current_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    metadata = {
+        "event_id": click_info.recommendation_id,
+        "source_page": click_info.source_page,
+        "position": click_info.position
+    }
+    background_tasks.add_task(
+        log_interaction,
+        supabase_client=supabase,
+        user_id=current_user_id,
+        interaction_type="EVENT_RECOMMENDATION_CLICK",
+        target_entity_type="EVENT",
+        target_entity_id=click_info.recommendation_id,
+        metadata=metadata
+    )
+    return {"success": True, "message": "Event recommendation click recorded"}
+
+# --- Member Alignment Endpoint ---
+@app.get("/member-alignment/{user_id}")
+async def get_member_alignment(
+    user_id: str,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    entity_type: str = Query(..., regex="^(group|event)$"),
+    entity_id: str = Query(...),
+    limit: int = Query(5, ge=1, le=20),
+    min_similarity: float = Query(0.1, ge=0.0, le=1.0)
+):
+    """
+    Get alignment/similarity between a user and other members of a group or event.
+    
+    This helps users find potential connections when they join a group or event.
+    """
+    if not supabase:
+        raise HTTPException(status_code=503, detail="Database service unavailable")
+
+    current_user_id = await get_current_user(request)
+    
+    # Optional access control
+    # if current_user_id != user_id and not is_admin(current_user_id):
+    #    raise HTTPException(status_code=403, detail="Forbidden")
+
+    if current_user_id:
+        background_tasks.add_task(
+            log_interaction,
+            supabase_client=supabase,
+            user_id=current_user_id,
+            interaction_type="VIEW_MEMBER_ALIGNMENT",
+            target_entity_type=entity_type.upper(),
+            target_entity_id=entity_id,
+            metadata={
+                "user_id": user_id,
+                "limit": limit,
+                "min_similarity": min_similarity
+            }
+        )
+
+    try:
+        # Check if user is a member of the entity
+        is_member = await check_entity_membership(user_id, entity_type, entity_id)
+        if not is_member:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"User {user_id} is not a member of this {entity_type}"
+            )
+        
+        # Get aligned members
+        alignment_service = create_member_alignment_service(supabase)
+        aligned_members = await alignment_service.get_aligned_members(
+            user_id=user_id,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            limit=limit,
+            min_similarity=min_similarity
+        )
+        
+        return {
+            "aligned_members": aligned_members,
+            "count": len(aligned_members)
+        }
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions
+    except Exception as e:
+        logger.error(f"Error getting member alignment: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to calculate member alignment")
+
+async def check_entity_membership(user_id: str, entity_type: str, entity_id: str) -> bool:
+    """Check if a user is a member of the specified group or event."""
+    try:
+        if entity_type == "group":
+            # Check group membership
+            result = await supabase.table("group_members").select("*").eq("group_id", entity_id).eq("member_id", user_id).execute()
+            return len(result.data) > 0
+        elif entity_type == "event":
+            # Check event attendance
+            result = await supabase.table("event_attendance").select("*").eq("event_id", entity_id).eq("user_id", user_id).execute()
+            return len(result.data) > 0
+        else:
+            return False
+    except Exception as e:
+        logger.error(f"Error checking membership: {e}")
+        return False
+
+# --- Member Alignment Click Endpoint ---
+@app.post("/member-alignment/click")
+async def record_member_alignment_click(
+    click_info: RecommendationClickInfo,
+    request: Request,
+    background_tasks: BackgroundTasks
+):
+    """Records when a member alignment recommendation is clicked."""
+    current_user_id = await get_current_user(request)
+    if not current_user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    metadata = {
+        "member_id": click_info.recommendation_id,
+        "source_page": click_info.source_page,
+        "position": click_info.position
+    }
+    background_tasks.add_task(
+        log_interaction,
+        supabase_client=supabase,
+        user_id=current_user_id,
+        interaction_type="MEMBER_ALIGNMENT_CLICK",
+        target_entity_type="PROFILE",
+        target_entity_id=click_info.recommendation_id,
+        metadata=metadata
+    )
+    return {"success": True, "message": "Member alignment click recorded"}
 
 # --- Main Execution (for running directly with uvicorn) ---
 if __name__ == "__main__":

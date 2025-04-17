@@ -1,20 +1,59 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { getUserProfile } from '@/lib/profile';
+import { User } from '@supabase/supabase-js';
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
+  let user: User | null = null;
+  let authError: any = null;
+  let recommendations: any[] = []; // Define recommendations array outside the try block
+
   try {
     // Initialize Supabase client
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
     
-    // Check authentication
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    // --- Prioritize Authorization Header --- 
+    const authHeader = req.headers.get('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        console.log("[API Recs] Found Bearer token in header. Verifying...");
+        const { data: { user: userFromToken }, error: tokenError } = await supabase.auth.getUser(token);
+        if (tokenError) {
+            console.error("[API Recs] Token verification error:", tokenError.message);
+            authError = tokenError; // Store error but don't immediately fail
+        } else {
+            user = userFromToken; // Assign user if token is valid
+            console.log("[API Recs] Token verified successfully.");
+        }
     }
+    // --- End Prioritize Header ---
+
+    // --- Fallback to Cookie Auth if no user yet --- 
+    if (!user && !authError) { // Only try cookie auth if header didn't work or wasn't present
+        console.log("[API Recs] No valid Bearer token found or provided. Falling back to cookie auth...");
+        const { data: { user: userFromCookie }, error: cookieError } = await supabase.auth.getUser();
+        if (cookieError) {
+            console.error("[API Recs] Cookie auth error:", cookieError.message);
+            authError = cookieError;
+        } else {
+            user = userFromCookie;
+             console.log("[API Recs] Cookie auth successful.");
+        }
+    }
+    // --- End Fallback --- 
     
+    // --- Final Auth Check --- 
+    if (!user) {
+      const errorMessage = authError ? `Authentication failed: ${authError.message}` : 'Not authenticated';
+      console.error("[API Recs] Final auth check failed:", errorMessage);
+      return NextResponse.json({ error: errorMessage }, { status: 401 });
+    }
+    // --- End Final Auth Check ---
+    
+    console.log(`[API Recs] Authenticated user ID: ${user.id}`);
+
     // Get user profile for matching preferences
     const userProfile = await getUserProfile(user.id);
     if (!userProfile) {
@@ -37,25 +76,20 @@ export async function GET(req: Request) {
       .from('profiles')
       .select(`
         id,
-        user_id,
         first_name,
         last_name,
         headline,
         bio,
         avatar_url,
-        current_company,
-        current_role,
         industry,
         experience_level,
         skills,
-        education,
         interests,
         location,
-        availability_status,
         created_at,
         updated_at
       `)
-      .not('user_id', 'in', `(${exclude.join(',')})`)
+      .not('id', 'in', `(${exclude.join(',')})`)
       .limit(limit);
     
     // Apply filters based on user profile if available
@@ -64,44 +98,47 @@ export async function GET(req: Request) {
     }
     
     // Execute query
-    const { data: recommendations, error } = await query;
+    // Assign to the outer recommendations variable
+    const { data: initialRecommendations, error } = await query;
     
     if (error) {
       console.error('Error fetching recommendations:', error);
       return NextResponse.json({ error: 'Failed to fetch recommendations' }, { status: 500 });
     }
     
+    // Assign initial results
+    recommendations = initialRecommendations || [];
+
     // Check if we found enough recommendations
     if (recommendations.length < limit / 2 && userProfile.industry) {
       // If not enough matches with same industry, try without industry filter
+      console.log('[API Recs] Not enough matches with industry filter, trying without...');
       const { data: moreRecommendations, error: moreError } = await supabase
         .from('profiles')
         .select(`
           id,
-          user_id,
           first_name,
           last_name,
           headline,
           bio,
           avatar_url,
-          current_company,
-          current_role,
           industry,
           experience_level,
           skills,
-          education,
           interests,
           location,
-          availability_status,
           created_at,
           updated_at
         `)
-        .not('user_id', 'in', `(${exclude.join(',')})`)
-        .not('user_id', 'in', `(${recommendations.map(r => r.user_id).join(',')})`)
+        .not('id', 'in', `(${exclude.join(',')})`)
+        .not('id', 'in', `(${recommendations.map(r => r.id).join(',')})`) // Exclude already fetched recommendations
         .limit(limit - recommendations.length);
       
       if (!moreError && moreRecommendations) {
+        console.log(`[API Recs] Fetched ${moreRecommendations.length} additional recommendations.`);
         recommendations.push(...moreRecommendations);
+      } else if (moreError) {
+         console.error('Error fetching more recommendations:', moreError);
       }
     }
     
@@ -111,22 +148,30 @@ export async function GET(req: Request) {
       .insert({
         user_id: user.id,
         count: recommendations.length,
-        algorithm_version: 'v1-simple-industry-match'
+        algorithm_version: 'v1-simple-industry-match' // Update if algorithm changes
       });
     
     if (logError) {
+      // Log but don't fail the request
       console.error('Error logging recommendation batch:', logError);
     }
     
-    return NextResponse.json({
-      recommendations,
-      metadata: {
-        count: recommendations.length,
-        algorithm: 'v1-simple-industry-match'
-      }
-    });
   } catch (error) {
     console.error('Recommendation API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    // Return empty recommendations on general error
+    return NextResponse.json({ 
+        recommendations: [], 
+        metadata: { count: 0, algorithm: 'error' },
+        error: 'Internal server error' 
+    }, { status: 500 });
   }
-} 
+
+  // Return successful response with recommendations
+  return NextResponse.json({
+    recommendations,
+    metadata: {
+      count: recommendations.length,
+      algorithm: 'v1-simple-industry-match' // Update if algorithm changes
+    }
+  });
+}

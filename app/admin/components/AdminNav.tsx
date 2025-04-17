@@ -6,7 +6,8 @@ import {
   DocumentTextIcon, 
   InboxIcon, 
   ChatBubbleLeftIcon,
-  ArrowLeftOnRectangleIcon 
+  ArrowLeftOnRectangleIcon,
+  BeakerIcon 
 } from '@heroicons/react/24/outline';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
@@ -16,6 +17,7 @@ const navigation = [
   { name: 'Blog Posts', href: '/admin/blog', icon: DocumentTextIcon },
   { name: 'Applications', href: '/admin/applications', icon: InboxIcon },
   { name: 'Contact Messages', href: '/admin/contact', icon: ChatBubbleLeftIcon },
+  { name: 'Demo Environment', href: '/admin/demo', icon: BeakerIcon },
 ];
 
 export default function AdminNav() {

@@ -5,6 +5,7 @@ import '../styles/globals.css'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import Providers from '../components/Providers'
+import DemoModeIndicator from '../components/DemoModeIndicator'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
@@ -145,6 +146,7 @@ export default async function RootLayout({
               {children}
             </main>
             <Footer />
+            <DemoModeIndicator />
           </div>
         </Providers>
       </body>

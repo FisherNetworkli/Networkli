@@ -257,7 +257,7 @@ export function SideNav() {
     },
     {
       name: 'Admin',
-      href: '/dashboard/admin',
+      href: '/admin',
       icon: (
         <svg 
           xmlns="http://www.w3.org/2000/svg" 

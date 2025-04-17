@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { User } from '@supabase/supabase-js';
-import { Loader2, Mail, MapPin, Building, Briefcase, Link as LinkIcon, UserPlus } from 'lucide-react';
+import { Loader2, Mail, MapPin, Building, Briefcase, Link as LinkIcon, UserPlus, Users, UserCheck, Lightbulb, Sparkles, Calendar, Tv } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'react-hot-toast';
+import Link from 'next/link';
 
 interface UserProfile {
   id: string;
@@ -25,6 +26,15 @@ interface UserProfile {
   limited_view?: boolean;
 }
 
+type Recommendation = {
+  id: string;
+  name?: string;
+  title?: string;
+  avatar_url?: string;
+  reason?: string;
+  score?: number;
+};
+
 export default function ProfileViewPage({ params }: { params: { id: string } }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -34,11 +44,18 @@ export default function ProfileViewPage({ params }: { params: { id: string } }) 
   const supabase = createClientComponentClient();
   const profileId = params.id;
 
+  const [profileRecommendations, setProfileRecommendations] = useState<Recommendation[]>([]);
+  const [groupRecommendations, setGroupRecommendations] = useState<Recommendation[]>([]);
+  const [eventRecommendations, setEventRecommendations] = useState<Recommendation[]>([]);
+  const [recommendationLoading, setRecommendationLoading] = useState(false);
+
   useEffect(() => {
     const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setCurrentUser(session.user);
+      } else {
+        console.warn("No active session found for current user.");
       }
     };
 
@@ -54,11 +71,10 @@ export default function ProfileViewPage({ params }: { params: { id: string } }) 
       
       try {
         const { data: sessionData } = await supabase.auth.getSession();
-        if (!sessionData.session) {
-          throw new Error('No authenticated session');
+        if (!sessionData.session?.access_token) {
+          throw new Error('No authenticated session or token');
         }
 
-        // Fetch the profile from the API
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
         const response = await fetch(`${apiUrl}/profiles/${profileId}?source=profile_page`, {
           method: 'GET',
@@ -69,19 +85,21 @@ export default function ProfileViewPage({ params }: { params: { id: string } }) 
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to fetch profile: ${response.statusText}`);
+          let errorMsg = `Failed to fetch profile: ${response.statusText}`;
+          try { const errorJson = await response.json(); errorMsg = errorJson.error || errorMsg; } catch(e){}
+          throw new Error(errorMsg);
         }
 
         const profileData = await response.json();
         setProfile(profileData);
 
-        // Track profile view from recommendation
         if (window.location.search.includes('from=recommendation')) {
           try {
             await fetch('/api/recommendations/view', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionData.session.access_token}`
               },
               body: JSON.stringify({
                 profile_id: profileId,
@@ -90,7 +108,6 @@ export default function ProfileViewPage({ params }: { params: { id: string } }) 
             });
           } catch (viewError) {
             console.error('Error logging profile view:', viewError);
-            // Non-blocking - continue even if logging fails
           }
         }
       } catch (err) {
@@ -105,12 +122,76 @@ export default function ProfileViewPage({ params }: { params: { id: string } }) 
     fetchProfile();
   }, [profileId, supabase]);
 
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      if (!profileId || !currentUser) return;
+      
+      setRecommendationLoading(true);
+      console.log(`[Profile Page] Fetching recommendations for profile: ${profileId}`);
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          console.warn("[Profile Page Recs] No access token found for fetching recommendations.");
+          setRecommendationLoading(false);
+          return;
+        }
+        const accessToken = session.access_token;
+        
+        const headers: HeadersInit = {
+          'Authorization': `Bearer ${accessToken}`
+        };
+        
+        const recTypes: ('profile' | 'group' | 'event')[] = ['profile', 'group', 'event'];
+        const promises = recTypes.map(type => 
+          fetch(`/api/recommendations?profile_id=${profileId}&type=${type}&limit=3`, { headers })
+            .then(res => {
+               if (!res.ok) {
+                   console.error(`[Profile Page Recs] API Error (${res.status}) fetching ${type} recs for ${profileId}`);
+                   return { type, data: { recommendations: [] } };
+               }
+               return res.json().then(data => ({ type, data }));
+            })
+        );
+        
+        const results = await Promise.allSettled(promises);
+        
+        const fetchedRecommendations: { [key: string]: Recommendation[] } = {
+          profile: [],
+          group: [],
+          event: []
+        };
+
+        results.forEach(result => {
+          if (result.status === 'fulfilled' && result.value) {
+            const { type, data } = result.value;
+            fetchedRecommendations[type] = data.recommendations || [];
+          }
+        });
+
+        console.log("[Profile Page Recs] Fetched recommendations:", fetchedRecommendations);
+        setProfileRecommendations(fetchedRecommendations.profile);
+        setGroupRecommendations(fetchedRecommendations.group);
+        setEventRecommendations(fetchedRecommendations.event);
+
+      } catch (err) {
+        console.error('Error fetching recommendations on profile page:', err);
+        toast.error('Could not load recommendations');
+      } finally {
+        setRecommendationLoading(false);
+      }
+    };
+
+    if (profile && currentUser) { 
+        fetchRecommendations();
+    }
+  }, [profileId, profile, currentUser, supabase]);
+
   const handleConnect = async () => {
     if (!currentUser || !profile) return;
     
     setConnecting(true);
     try {
-      // Create connection request
       const { error } = await supabase
         .from('connections')
         .insert({
@@ -151,15 +232,12 @@ export default function ProfileViewPage({ params }: { params: { id: string } }) 
     );
   }
 
-  // Check if this is a limited view
   const isLimitedView = profile.limited_view === true;
 
   return (
     <div className="container mx-auto py-6 max-w-5xl">
-      {/* Profile Header Section */}
       <div className="bg-white rounded-lg border shadow-sm overflow-hidden mb-6">
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-40 relative">
-          {/* Avatar */}
           <div className="absolute bottom-0 left-8 transform translate-y-1/2">
             <div className="w-32 h-32 rounded-full border-4 border-white bg-white overflow-hidden flex items-center justify-center">
               {profile.avatar_url ? (
@@ -176,7 +254,6 @@ export default function ProfileViewPage({ params }: { params: { id: string } }) 
             </div>
           </div>
           
-          {/* Connect Button */}
           <div className="absolute bottom-4 right-4">
             {currentUser && currentUser.id !== profileId && (
               <Button 
@@ -200,7 +277,6 @@ export default function ProfileViewPage({ params }: { params: { id: string } }) 
           </div>
         </div>
         
-        {/* Profile Content */}
         <div className="mt-20 p-8">
           <div className="space-y-8">
             <div>
@@ -237,10 +313,8 @@ export default function ProfileViewPage({ params }: { params: { id: string } }) 
         </div>
       </div>
 
-      {/* Additional Profile Information */}
       {!isLimitedView && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Skills */}
           {profile.skills && profile.skills.length > 0 && (
             <Card>
               <CardHeader>
@@ -256,7 +330,6 @@ export default function ProfileViewPage({ params }: { params: { id: string } }) 
             </Card>
           )}
 
-          {/* Interests */}
           {profile.interests && profile.interests.length > 0 && (
             <Card>
               <CardHeader>
@@ -274,7 +347,106 @@ export default function ProfileViewPage({ params }: { params: { id: string } }) 
         </div>
       )}
 
-      {/* Limited View Message */}
+      {!isLimitedView && (
+        <div className="mt-6">
+          <h3 className="text-xl font-semibold mb-4">Suggestions for You</h3>
+          {recommendationLoading ? (
+            <div className="flex justify-center items-center p-6">
+              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+              <span className="ml-2">Loading suggestions...</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {profileRecommendations.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <Users className="h-5 w-5 mr-2 text-blue-600"/>
+                      Suggested Connections
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-3">
+                      {profileRecommendations.map(rec => (
+                        <li key={rec.id} className="flex items-center space-x-3 text-sm">
+                          <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                             {rec.avatar_url ? (
+                                <img src={rec.avatar_url} alt={rec.name} className="h-full w-full rounded-full object-cover"/>
+                             ) : <UserCheck className="h-4 w-4 text-gray-500"/>}
+                          </div>
+                          <div>
+                            <Link href={`/dashboard/profile/${rec.id}?from=recommendation`} className="font-medium text-gray-800 hover:text-blue-600">
+                              {rec.name || rec.title || 'View Profile'}
+                            </Link>
+                            {rec.reason && <p className="text-xs text-gray-500 italic">{rec.reason}</p>}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+
+              {groupRecommendations.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <Lightbulb className="h-5 w-5 mr-2 text-purple-600"/>
+                      Recommended Groups
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                     <ul className="space-y-3">
+                      {groupRecommendations.map(rec => (
+                        <li key={rec.id} className="flex items-center space-x-3 text-sm">
+                           <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                             <Sparkles className="h-4 w-4 text-gray-500"/>
+                           </div>
+                          <div>
+                            <Link href={`#group-${rec.id}`} className="font-medium text-gray-800 hover:text-purple-600">
+                              {rec.name || 'View Group'}
+                            </Link>
+                            {rec.reason && <p className="text-xs text-gray-500 italic">{rec.reason}</p>}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+
+              {eventRecommendations.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <Calendar className="h-5 w-5 mr-2 text-pink-600"/>
+                      Recommended Events
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                     <ul className="space-y-3">
+                      {eventRecommendations.map(rec => (
+                        <li key={rec.id} className="flex items-center space-x-3 text-sm">
+                           <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                             <Tv className="h-4 w-4 text-gray-500"/>
+                           </div>
+                          <div>
+                             <Link href={`#event-${rec.id}`} className="font-medium text-gray-800 hover:text-pink-600">
+                              {rec.title || 'View Event'}
+                            </Link>
+                            {rec.reason && <p className="text-xs text-gray-500 italic">{rec.reason}</p>}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {isLimitedView && (
         <Card className="mt-6">
           <CardContent className="py-6">
