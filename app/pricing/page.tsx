@@ -1,20 +1,40 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { Button } from "../components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card"
 import { Check, Loader2, ArrowRight } from "lucide-react"
-import { useSession } from "next-auth/react"
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 export default function PricingPage() {
   const router = useRouter()
-  const { data: session, status } = useSession()
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [authStatus, setAuthStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const supabase = createClientComponentClient()
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUserEmail(session.user.email || null);
+        setAuthStatus('authenticated');
+      } else {
+        setAuthStatus('unauthenticated');
+      }
+    };
+    getUser();
+  }, [supabase]);
 
   const handleUpgrade = async (plan: string) => {
+    if (authStatus !== 'authenticated') {
+      router.push('/login?redirect=/pricing');
+      return;
+    }
+
     try {
       setIsLoading(true)
       setSelectedPlan(plan)
@@ -26,8 +46,7 @@ export default function PricingPage() {
         },
         body: JSON.stringify({ 
           plan,
-          // Include user email if available, otherwise null
-          email: session?.user?.email || null
+          email: userEmail
         }),
       })
       
