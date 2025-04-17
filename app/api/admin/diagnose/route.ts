@@ -18,8 +18,7 @@ export async function GET() {
       serviceKeyLength: supabaseServiceRoleKey?.length || 0,
       createdClientSuccessfully: false,
       testQuerySuccessful: false,
-      testQueryResult: null,
-      error: null
+      error: null as string | null
     };
     
     // If we have the required environment variables, try to create a client
@@ -31,16 +30,15 @@ export async function GET() {
         
         report.createdClientSuccessfully = true;
         
-        // Try a simple query that requires admin privileges
-        const { data, error } = await supabaseAdmin.rpc('execute_sql', { 
-          sql: 'SELECT current_user, current_database();' 
-        });
+        // Try a simple query that requires admin privileges - just count profiles
+        const { count, error } = await supabaseAdmin
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
         
         if (error) {
-          report.error = `Admin RPC Error: ${error.message}`;
+          report.error = `Admin Query Error: ${error.message}`;
         } else {
           report.testQuerySuccessful = true;
-          report.testQueryResult = data;
         }
       } catch (clientError: any) {
         report.error = `Failed to create or use admin client: ${clientError.message}`;
