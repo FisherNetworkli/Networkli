@@ -124,9 +124,9 @@ export async function POST(request: Request) {
             name: group.name,
             description: group.description,
             category: group.category,
-            industry: group.industry || group.category, // Fallback to category if industry missing
-            location: group.location || 'Global', // Default location
-            created_by: creatorId,
+            industry: group.industry || group.category,
+            location: group.location || 'Global',
+            organizer_id: creatorId,
             is_demo: true
           })
           .select()

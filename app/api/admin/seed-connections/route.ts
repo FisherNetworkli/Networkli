@@ -128,8 +128,8 @@ export async function POST(request: Request) {
         const { error: connectionError } = await supabaseAdmin
           .from('connections')
           .insert({
-            user_id_1: profile1Id,
-            user_id_2: profile2Id,
+            requester_id: profile1Id,
+            receiver_id: profile2Id,
             status: 'accepted',
             is_demo: true
           });
