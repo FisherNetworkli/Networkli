@@ -1,18 +1,23 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { createAdminClient } from '@/utils/supabase/server';
 
 export async function GET(request: Request) {
+  // Debug environment vars
+  console.log('[API Demo Status] DEBUG ENV:', {
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+  });
   const cookieStore = cookies();
   const supabaseUserClient = createRouteHandlerClient({ cookies: () => cookieStore });
 
   // --- Auth Check ---
-  const { data: { session } } = await supabaseUserClient.auth.getSession();
+  const { data: { session }, error: sessionError } = await supabaseUserClient.auth.getSession();
+  console.log('[API Demo Status] Session:', session, 'Error:', sessionError);
   if (!session) {
+    console.warn('[API Demo Status] Unauthorized: no session');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   // Optional: Add Admin Role check here
@@ -21,17 +26,9 @@ export async function GET(request: Request) {
   console.log('[API Demo Status] Fetching demo data counts and profiles...');
 
   try {
-    // --- Check environment variables inside try block --- 
-    if (!supabaseUrl || !supabaseServiceRoleKey) {
-      console.error('[API Demo Status] Missing Supabase URL or Service Role Key INSIDE TRY.');
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
-    }
-
-    // --- Create a fresh client for each request --- 
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
-        auth: { autoRefreshToken: false, persistSession: false }
-    });
-    console.log('[API Demo Status] Fresh admin client created.')
+    // Create an admin client for privileged operations
+    const supabaseAdmin = createAdminClient();
+    console.log('[API Demo Status] Admin client created.');
 
     const [
       { data: profilesData, error: profileError },
