@@ -71,16 +71,18 @@ if settings:
         # Test connection with more detailed error reporting
         try:
             test_result = supabase.table("profiles").select("count", count="exact").limit(1).execute()
-            if test_result.error:
-                logger.error(f"Supabase connection test failed: {test_result.error}")
+            # Check HTTP status code to determine success
+            if hasattr(test_result, 'status_code') and test_result.status_code != 200:
+                logger.error(f"Supabase connection test failed: HTTP {test_result.status_code}")
             else:
                 logger.info("Supabase client initialized and connection test passed.")
         except Exception as conn_err:
             logger.error(f"Could not test Supabase connectivity during startup: {conn_err}", exc_info=True)
             # Try to get more specific error information
-            if "invalid api key" in str(conn_err).lower():
+            err_str = str(conn_err).lower()
+            if "invalid api key" in err_str:
                 logger.critical("API key appears to be invalid. Check your SUPABASE_KEY or SUPABASE_SERVICE_ROLE_KEY.")
-            elif "network" in str(conn_err).lower():
+            elif "network" in err_str:
                 logger.critical(f"Network error connecting to Supabase at {settings.SUPABASE_URL}. Check connectivity.")
 
     except Exception as e:
@@ -321,43 +323,15 @@ async def log_interaction(
 
 # --- Database Check Helpers ---
 async def table_exists(client: Client, table_name: str, schema: str = "public") -> bool:
-    """Check if a table exists in the database."""
+    """Check if a table exists by selecting one row from it."""
     if not client:
         return False
     try:
-        # Query information_schema is generally reliable
-        res = await client.rpc(
-            'table_exists', # Assuming a DB function `table_exists` exists
-            {'table_name': table_name, 'table_schema': schema}
-        ).execute()
-        if res.error:
-            logger.warning(f"Error checking if table {schema}.{table_name} exists (RPC failed): {res.error}")
-            # Fallback: Try a select query
-            try:
-                select_res = await client.from_(f"{schema}.{table_name}").select("count", count="exact").limit(1).execute()
-                return select_res.error is None
-            except Exception as select_err:
-                logger.warning(f"Error checking if table {schema}.{table_name} exists (SELECT failed): {select_err}")
-                return False
-        return res.data == True
+        select_res = await client.table(table_name).select("id").limit(1).execute()
+        return select_res.error is None
     except Exception as e:
-        logger.error(f"Exception checking if table {schema}.{table_name} exists: {e}")
+        logger.warning(f"Error checking if table {schema}.{table_name} exists: {e}")
         return False
-
-# --- Startup Event --- (Example: Check required tables)
-@app.on_event("startup")
-async def startup_db_check():
-    logger.info("Running database checks on startup...")
-    required_tables = ["profiles", "connections", "interaction_history"]
-    if supabase:
-        for table in required_tables:
-            exists = await table_exists(supabase, table)
-            if not exists:
-                logger.error(f"CRITICAL: Required table '{table}' does not exist in the database!")
-            else:
-                logger.info(f"Table '{table}' confirmed.")
-    else:
-        logger.error("Supabase client not initialized, skipping startup DB checks.")
 
 # --- API Endpoints ---
 
@@ -1053,6 +1027,52 @@ async def record_member_alignment_click(
         metadata=metadata
     )
     return {"success": True, "message": "Member alignment click recorded"}
+
+# Recommendation Endpoints
+@app.get("/recommend/users/{user_id}")
+async def recommend_users(
+    user_id: str,
+    limit: int = Query(10, ge=1, le=50)
+):
+    """Return top-N similar users for the given user_id"""
+    resp = supabase.table("user_to_user_similarity")\
+        .select("other_user_id, score")\
+        .eq("user_id", user_id)\
+        .order("score", desc=True)\
+        .limit(limit)\
+        .execute()
+    data = resp.data if hasattr(resp, 'data') else []
+    return [{"profile_id": row["other_user_id"], "score": row["score"]} for row in data]
+
+@app.get("/recommend/groups/{user_id}")
+async def recommend_groups(
+    user_id: str,
+    limit: int = Query(10, ge=1, le=50)
+):
+    """Return top-N recommended groups for the given user_id"""
+    resp = supabase.table("group_alignment")\
+        .select("group_id, score")\
+        .eq("user_id", user_id)\
+        .order("score", desc=True)\
+        .limit(limit)\
+        .execute()
+    data = resp.data if hasattr(resp, 'data') else []
+    return [{"group_id": row["group_id"], "score": row["score"]} for row in data]
+
+@app.get("/recommend/events/{user_id}")
+async def recommend_events(
+    user_id: str,
+    limit: int = Query(10, ge=1, le=50)
+):
+    """Return top-N recommended events for the given user_id"""
+    resp = supabase.table("event_alignment")\
+        .select("event_id, score")\
+        .eq("user_id", user_id)\
+        .order("score", desc=True)\
+        .limit(limit)\
+        .execute()
+    data = resp.data if hasattr(resp, 'data') else []
+    return [{"event_id": row["event_id"], "score": row["score"]} for row in data]
 
 # --- Main Execution (for running directly with uvicorn) ---
 if __name__ == "__main__":

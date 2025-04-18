@@ -2,7 +2,7 @@
 
 import { StepConfig, SignupStep, SignupFormData } from '../../types/signup';
 import { Check } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 interface SignupProgressProps {

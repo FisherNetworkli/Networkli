@@ -15,7 +15,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from pathlib import Path
 
-from app.settings import settings
+from settings import settings
 
 logger = logging.getLogger(__name__)
 

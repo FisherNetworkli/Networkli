@@ -14,9 +14,11 @@ class Settings(BaseSettings):
     NETWORKLI_GNN_MODEL: Optional[str] = "gnn_model.pt" # Just the filename
     
     class Config:
-        # Load .env file from the current directory (project root)
-        env_file_path = Path(__file__).parent / '.env' 
-        env_file = str(env_file_path)
+        # Load .env.local first (for local development) and fallback to .env
+        env_file = [
+            Path(__file__).parent / '.env.local',
+            Path(__file__).parent / '.env'
+        ]
         env_file_encoding = 'utf-8'
         extra = 'ignore' 
         
