@@ -70,50 +70,61 @@ export async function GET(req: NextRequest) {
       exclude.push(user.id);
     }
     
-    // Get profiles that match user interests and industry
-    // Simple implementation - will be enhanced in Phase 3 & 4
-    let query = supabase
-      .from('profiles')
-      .select(`
-        id,
-        first_name,
-        last_name,
-        headline,
-        bio,
-        avatar_url,
-        industry,
-        experience_level,
-        skills,
-        interests,
-        location,
-        created_at,
-        updated_at
-      `)
-      .not('id', 'in', `(${exclude.join(',')})`)
-      .limit(limit);
-    
-    // Apply filters based on user profile if available
-    if (userProfile.industry) {
-      query = query.eq('industry', userProfile.industry);
+    // --- ML Recommendation Integration ---
+    let mlRecommendations = [];
+    try {
+      const ML_API_URL = process.env.ML_API_URL || 'http://localhost:8000';
+      const mlRes = await fetch(`${ML_API_URL}/recommend`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id, limit }),
+      });
+      if (mlRes.ok) {
+        const mlData = await mlRes.json();
+        // Expecting mlData.recommendations to be an array of user IDs or objects
+        const recommendedIds = (mlData.recommendations || []).map((r: any) => r.id || r.user_id || r);
+        if (recommendedIds.length > 0) {
+          // Fetch full profile data for these IDs from Supabase
+          const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select(`
+              id,
+              first_name,
+              last_name,
+              headline,
+              bio,
+              avatar_url,
+              industry,
+              experience_level,
+              skills,
+              interests,
+              location,
+              created_at,
+              updated_at
+            `)
+            .in('id', recommendedIds);
+          if (!profilesError && profiles) {
+            // Optionally, merge ML scores/reasons into profiles
+            recommendations = profiles.map(profile => {
+              const mlRec = (mlData.recommendations || []).find((r: any) => (r.id || r.user_id) === profile.id);
+              return {
+                ...profile,
+                similarity_score: mlRec?.similarity_score,
+                reason: mlRec?.reason
+              };
+            });
+          }
+        }
+      }
+    } catch (mlError) {
+      console.error('[API Recs] ML service error:', mlError);
+      // Fallback to current logic below
     }
-    
-    // Execute query
-    // Assign to the outer recommendations variable
-    const { data: initialRecommendations, error } = await query;
-    
-    if (error) {
-      console.error('Error fetching recommendations:', error);
-      return NextResponse.json({ error: 'Failed to fetch recommendations' }, { status: 500 });
-    }
-    
-    // Assign initial results
-    recommendations = initialRecommendations || [];
-
-    // Check if we found enough recommendations
-    if (recommendations.length < limit / 2 && userProfile.industry) {
-      // If not enough matches with same industry, try without industry filter
-      console.log('[API Recs] Not enough matches with industry filter, trying without...');
-      const { data: moreRecommendations, error: moreError } = await supabase
+    // If ML failed or returned nothing, fallback to current logic
+    if (!recommendations || recommendations.length === 0) {
+      // Get profiles that match user interests and industry
+      // Simple implementation - will be enhanced in Phase 3 & 4
+      let query = supabase
         .from('profiles')
         .select(`
           id,
@@ -131,14 +142,56 @@ export async function GET(req: NextRequest) {
           updated_at
         `)
         .not('id', 'in', `(${exclude.join(',')})`)
-        .not('id', 'in', `(${recommendations.map(r => r.id).join(',')})`) // Exclude already fetched recommendations
-        .limit(limit - recommendations.length);
+        .limit(limit);
       
-      if (!moreError && moreRecommendations) {
-        console.log(`[API Recs] Fetched ${moreRecommendations.length} additional recommendations.`);
-        recommendations.push(...moreRecommendations);
-      } else if (moreError) {
-         console.error('Error fetching more recommendations:', moreError);
+      // Apply filters based on user profile if available
+      if (userProfile.industry) {
+        query = query.eq('industry', userProfile.industry);
+      }
+      
+      // Execute query
+      // Assign to the outer recommendations variable
+      const { data: initialRecommendations, error } = await query;
+      
+      if (error) {
+        console.error('Error fetching recommendations:', error);
+        return NextResponse.json({ error: 'Failed to fetch recommendations' }, { status: 500 });
+      }
+      
+      // Assign initial results
+      recommendations = initialRecommendations || [];
+
+      // Check if we found enough recommendations
+      if (recommendations.length < limit / 2 && userProfile.industry) {
+        // If not enough matches with same industry, try without industry filter
+        console.log('[API Recs] Not enough matches with industry filter, trying without...');
+        const { data: moreRecommendations, error: moreError } = await supabase
+          .from('profiles')
+          .select(`
+            id,
+            first_name,
+            last_name,
+            headline,
+            bio,
+            avatar_url,
+            industry,
+            experience_level,
+            skills,
+            interests,
+            location,
+            created_at,
+            updated_at
+          `)
+          .not('id', 'in', `(${exclude.join(',')})`)
+          .not('id', 'in', `(${recommendations.map(r => r.id).join(',')})`) // Exclude already fetched recommendations
+          .limit(limit - recommendations.length);
+        
+        if (!moreError && moreRecommendations) {
+          console.log(`[API Recs] Fetched ${moreRecommendations.length} additional recommendations.`);
+          recommendations.push(...moreRecommendations);
+        } else if (moreError) {
+           console.error('Error fetching more recommendations:', moreError);
+        }
       }
     }
     

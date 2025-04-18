@@ -35,17 +35,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
   }
 
+  // Parse request body for userId and optional redirectTo
   let targetUserId: string;
+  let redirectTo: string | undefined;
   try {
     const body = await request.json();
     targetUserId = body.userId;
+    redirectTo = body.redirectTo;
     if (!targetUserId || typeof targetUserId !== 'string') {
-         throw new Error('Missing or invalid target userId in request body.');
+      throw new Error('Missing or invalid target userId in request body.');
     }
-    console.log(`[API GenLink] Received request for user ID: ${targetUserId}`);
-  } catch (e) {
-      console.error('[API GenLink] Error parsing request body:', e);
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    console.log(`[API GenLink] Received request for user ID: ${targetUserId}, redirectTo: ${redirectTo}`);
+  } catch (e: any) {
+    console.error('[API GenLink] Error parsing request body:', e);
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 
   // Use Admin client for elevated privileges
@@ -76,12 +79,15 @@ export async function POST(request: Request) {
 
     // --- Step 2: Generate the Magic Link --- 
     console.log(`[API GenLink] Generating magic link for ${targetEmail}...`);
-    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-        type: 'magiclink',
-        email: targetEmail,
-        // Optional: Add redirectTo if you want them to land somewhere specific after login
-        // options: { redirectTo: '/dashboard' } 
-    });
+    // Generate magic link, optionally redirecting to a specific path after login
+    const genParams: any = {
+      type: 'magiclink',
+      email: targetEmail
+    };
+    if (redirectTo && typeof redirectTo === 'string') {
+      genParams.options = { redirectTo };
+    }
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink(genParams);
 
     if (linkError) {
         console.error('[API GenLink] Error generating magic link:', linkError);

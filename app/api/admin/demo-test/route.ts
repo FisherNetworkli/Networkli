@@ -3,6 +3,12 @@ import { createAdminClient } from '@/utils/supabase/server';
 
 export async function GET(request: Request) {
   console.log('[API Demo Test] Test route started');
+  console.log('[API Demo Test] ENV:', {
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    anonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    serviceKeyPresent: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    serviceKeyPrefix: process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 5) ?? 'none'
+  });
   try {
     const supabaseAdmin = createAdminClient();
     console.log('[API Demo Test] Admin client created');

@@ -1092,6 +1092,33 @@ export default function DemoEnvironmentPage() {
     }
   };
 
+  // Function to login as any demo profile via magic link
+  const handleLoginAsProfile = async (profileId: string) => {
+    setActionLoading('loginAsProfile');
+    toast.loading('Generating sign-in link...');
+    try {
+      const response = await fetch('/api/admin/generate-signin-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId: profileId,
+          redirectTo: `/dashboard/profile/${profileId}`
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || result.message);
+      toast.dismiss();
+      toast.success('Redirecting to user view...');
+      window.location.href = result.signInLink;
+    } catch (error: any) {
+      console.error('[Login As Profile] Error:', error);
+      toast.dismiss();
+      toast.error(`Failed to login as profile: ${error.message}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   return (
     <div className="py-6">
       <div className="px-4 sm:px-6 lg:px-8">
@@ -1328,13 +1355,14 @@ export default function DemoEnvironmentPage() {
                       <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Industry</th>
                       <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Location</th>
                       <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Skills</th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {loading ? (
-                       <tr><td colSpan={4} className="py-4 text-center text-sm text-gray-500">Loading profiles...</td></tr>
+                       <tr><td colSpan={5} className="py-4 text-center text-sm text-gray-500">Loading profiles...</td></tr>
                     ) : demoProfiles.length === 0 ? (
-                      <tr><td colSpan={4} className="py-4 pl-4 pr-3 text-sm text-gray-500 text-center sm:pl-0">No demo profiles found.</td></tr>
+                      <tr><td colSpan={5} className="py-4 pl-4 pr-3 text-sm text-gray-500 text-center sm:pl-0">No demo profiles found.</td></tr>
                     ) : (
                       demoProfiles.map((profile) => (
                         <tr key={profile.id}>
@@ -1353,6 +1381,15 @@ export default function DemoEnvironmentPage() {
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{profile.location}</td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                             {Array.isArray(profile.skills) ? profile.skills.slice(0, 3).join(', ') + (profile.skills.length > 3 ? '...' : '') : 'N/A'}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            <button
+                              onClick={() => handleLoginAsProfile(profile.id)}
+                              disabled={isAnyLoading}
+                              className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                            >
+                              <KeyIcon className="h-4 w-4 mr-1" /> View As
+                            </button>
                           </td>
                         </tr>
                       ))

@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     console.log('[API Reset Demo] Admin client created successfully');
 
     // --- Delete Demo Data ---
-    const results = {};
+    const results: Record<string, { success: boolean; count?: number; error?: string }> = {};
     const errors = [];
 
     for (const table of DEMO_TABLES) {
@@ -87,12 +87,13 @@ export async function POST(request: Request) {
           results[table] = { success: false, error: error.message };
         } else {
           console.log(`[API Reset Demo] Successfully deleted ${count || 'unknown'} rows from ${table}`);
-          results[table] = { success: true, count };
+          results[table] = { success: true, count: count ?? undefined };
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error(`[API Reset Demo] Exception deleting from ${table}:`, e);
-        errors.push({ table, message: e.message });
-        results[table] = { success: false, error: e.message };
+        const msg = e instanceof Error ? e.message : String(e);
+        errors.push({ table, message: msg });
+        results[table] = { success: false, error: msg };
       }
     }
 

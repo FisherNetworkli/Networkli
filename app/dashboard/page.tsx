@@ -61,6 +61,10 @@ type ApiRecommendation = {
   // Group-specific fields if needed from API
   members?: number;
   category?: string;
+  // Added fields for better recommendations display
+  first_name?: string;
+  last_name?: string;
+  headline?: string;
 };
 
 // Keep old structure for UI compatibility for now
@@ -337,12 +341,12 @@ export default function DashboardPage() {
                       <li key={rec.id} className="flex items-center space-x-3 text-sm">
                          <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
                            {rec.avatar_url ? (
-                              <img src={rec.avatar_url} alt={rec.name || rec.title} className="h-full w-full rounded-full object-cover"/>
+                              <img src={rec.avatar_url} alt={`${rec.first_name || ''} ${rec.last_name || ''}`} className="h-full w-full rounded-full object-cover"/>
                            ) : <UserCheck className="h-4 w-4 text-gray-500"/>}
                          </div>
                         <div>
                           <Link href={`/dashboard/profile/${rec.id}?from=recommendation`} className="font-medium text-gray-800 hover:text-blue-600">
-                             {rec.name || rec.title || 'View Profile'}
+                             {rec.first_name || ''} {rec.last_name || ''}{rec.headline ? ` - ${rec.headline}` : ''}
                           </Link>
                           {rec.reason && <p className="text-xs text-gray-500 italic">({rec.reason})</p>}
                         </div>
@@ -564,7 +568,7 @@ export default function DashboardPage() {
                   {profileRecommendations.length > 0 && (
                     <Card>
                        <CardHeader> <CardTitle className="text-lg flex items-center"><Users className="h-5 w-5 mr-2 text-blue-600"/> Suggested Connections</CardTitle></CardHeader>
-                       <CardContent> <ul className="space-y-3"> {profileRecommendations.map(rec => (<li key={rec.id} className="flex items-center space-x-3 text-sm"> <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center"> {rec.avatar_url ? (<img src={rec.avatar_url} alt={rec.name || rec.title} className="h-full w-full rounded-full object-cover"/>) : <UserCheck className="h-4 w-4 text-gray-500"/>} </div> <div> <Link href={`/dashboard/profile/${rec.id}?from=recommendation`} className="font-medium text-gray-800 hover:text-blue-600"> {rec.name || rec.title || 'View Profile'} </Link> {rec.reason && <p className="text-xs text-gray-500 italic">({rec.reason})</p>} </div> </li>))} </ul> </CardContent>
+                       <CardContent> <ul className="space-y-3"> {profileRecommendations.map(rec => (<li key={rec.id} className="flex items-center space-x-3 text-sm"> <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center"> {rec.avatar_url ? (<img src={rec.avatar_url} alt={`${rec.first_name || ''} ${rec.last_name || ''}`} className="h-full w-full rounded-full object-cover"/>) : <UserCheck className="h-4 w-4 text-gray-500"/>} </div> <div> <Link href={`/dashboard/profile/${rec.id}?from=recommendation`} className="font-medium text-gray-800 hover:text-blue-600"> {rec.first_name || ''} {rec.last_name || ''} {rec.headline ? ` - ${rec.headline}` : ''} </Link> {rec.reason && <p className="text-xs text-gray-500 italic">({rec.reason})</p>} </div> </li>))} </ul> </CardContent>
                     </Card>
                   )}
                    {/* Groups Recommendations */} 
