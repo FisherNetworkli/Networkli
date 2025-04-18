@@ -148,3 +148,4 @@ logs/
 
 # Cursor
 .cursor/
+.env
