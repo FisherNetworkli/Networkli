@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AuthError } from '@supabase/supabase-js';
-import { supabase } from '@/utils/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function SignInForm() {
   const router = useRouter();
+  const supabase = createClientComponentClient();
   const [formData, setFormData] = useState({
     email: '',
     password: '',

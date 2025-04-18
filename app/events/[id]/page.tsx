@@ -116,7 +116,13 @@ export default function EventDetailPage() {
           .select(`
             user_id,
             status,
-            profiles:user_id(id, full_name, avatar_url, title)
+            profiles:user_id(
+              id,
+              first_name,
+              last_name,
+              avatar_url,
+              title
+            )
           `)
           .eq('event_id', eventId)
           .eq('status', 'attending')
@@ -139,15 +145,18 @@ export default function EventDetailPage() {
         
         // Format attendees data
         const formattedAttendees = attendeesData
-          .filter(a => a.profiles)
-          .map(a => ({
-            id: a.profiles.id,
-            full_name: a.profiles.full_name,
-            avatar_url: a.profiles.avatar_url,
-            title: a.profiles.title,
-            rsvp_status: a.status,
-            is_organizer: a.profiles.id === eventData.organizer_id
-          }));
+          ?.filter(a => Array.isArray(a.profiles) && a.profiles.length > 0)
+          .map(a => {
+            const profile = a.profiles[0];
+            return {
+              id: profile.id,
+              full_name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
+              avatar_url: profile.avatar_url,
+              title: profile.title,
+              rsvp_status: a.status,
+              is_organizer: profile.id === eventData?.organizer_id
+            };
+          }) || [];
         
         setEvent(eventData);
         setAttendees(formattedAttendees);

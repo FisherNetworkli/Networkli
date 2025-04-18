@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useAuthUser } from "@/app/hooks/useAuthUser";
-import AlignedMembersList from "@/app/components/AlignedMembersList";
-import { Button } from "@/app/components/ui/button";
+import { useAuthContext } from "@/providers/AuthProvider";
+import AlignedMembersList from "@/components/AlignedMembersList";
+import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 
 export default function EventMemberAlignmentPage() {
   const router = useRouter();
   const { id: eventId } = router.query;
-  const { user, isLoading: userLoading } = useAuthUser();
+  const { user, loading } = useAuthContext();
   const [eventName, setEventName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch event details to display the name
   useEffect(() => {
@@ -34,14 +36,10 @@ export default function EventMemberAlignmentPage() {
     fetchEvent();
   }, [eventId, user?.id]);
 
-  if (userLoading || isLoading) {
+  if (loading || isLoading) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="animate-pulse">
-          <div className="h-6 w-48 bg-gray-200 rounded mb-4"></div>
-          <div className="h-10 w-96 bg-gray-200 rounded mb-6"></div>
-          <div className="h-64 bg-gray-100 rounded"></div>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
@@ -78,14 +76,15 @@ export default function EventMemberAlignmentPage() {
         </p>
       </div>
       
-      <AlignedMembersList
-        userId={user.id}
-        entityType="event"
-        entityId={eventId as string}
-        title="Recommended connections at this event"
-        initialLimit={5}
-        maxLimit={15}
-      />
+      <main className="mt-8">
+        {user && (
+          <AlignedMembersList
+            userId={user.id}
+            entityType="event"
+            entityId={eventId as string}
+          />
+        )}
+      </main>
       
       <div className="mt-10 pt-6 border-t">
         <div className="flex items-center justify-between">

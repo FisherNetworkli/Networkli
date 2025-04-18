@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSupabase } from '@/app/supabase-provider'
-import Avatar from '@/app/components/Avatar'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import { Loader2, UserPlus, Check } from 'lucide-react'
@@ -31,7 +31,7 @@ export default function AlignedMembersList({
   entityId,
   limit = 5,
 }: AlignedMembersListProps) {
-  const { supabase } = useSupabase()
+  const supabase = createClientComponentClient()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -133,11 +133,15 @@ export default function AlignedMembersList({
           <CardContent className="p-4">
             <div className="flex items-start gap-4">
               <div onClick={() => viewProfile(recommendation.id)} className="cursor-pointer">
-                <Avatar
-                  url={recommendation.avatar_url}
-                  size={50}
-                  name={recommendation.full_name}
-                />
+                <Avatar className="h-[50px] w-[50px]">
+                  <AvatarImage
+                    src={recommendation.avatar_url || undefined}
+                    alt={recommendation.full_name || 'User Avatar'}
+                  />
+                  <AvatarFallback>
+                    {recommendation.full_name?.split(' ').map(n => n[0]).join('').toUpperCase() || '?'}
+                  </AvatarFallback>
+                </Avatar>
               </div>
               <div className="flex-1 min-w-0">
                 <div

@@ -100,8 +100,15 @@ export default function GroupDetailPage() {
           .from('group_members')
           .select(`
             user_id,
+            role,
             joined_at,
-            profiles:user_id(id, full_name, avatar_url, title)
+            profiles:user_id(
+              id,
+              first_name, 
+              last_name,  
+              avatar_url,
+              title       
+            )
           `)
           .eq('group_id', groupId)
           .limit(10);
@@ -122,15 +129,18 @@ export default function GroupDetailPage() {
         
         // Format members data
         const formattedMembers = membersData
-          .filter(m => m.profiles)
-          .map(m => ({
-            id: m.profiles.id,
-            full_name: m.profiles.full_name,
-            avatar_url: m.profiles.avatar_url,
-            title: m.profiles.title,
-            joined_at: m.joined_at,
-            is_organizer: m.profiles.id === groupData.organizer_id
-          }));
+          ?.filter(m => Array.isArray(m.profiles) && m.profiles.length > 0) 
+          .map(m => {
+            const profile = m.profiles[0]; 
+            return {
+              id: profile.id,
+              full_name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim(), 
+              avatar_url: profile.avatar_url,
+              title: profile.title,
+              joined_at: m.joined_at,
+              is_organizer: profile.id === groupData?.organizer_id
+            };
+          }) || [];
         
         setGroup(groupData);
         setMembers(formattedMembers);
@@ -496,6 +506,9 @@ export default function GroupDetailPage() {
                           {member.title}
                         </p>
                       )}
+                    </div>
+                    <div className="flex items-center text-xs text-muted-foreground">
+                      <span>Joined {new Date(member.joined_at).toLocaleDateString()}</span>
                     </div>
                     {member.is_organizer && (
                       <Badge variant="outline" className="ml-auto text-xs">

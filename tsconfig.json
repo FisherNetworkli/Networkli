@@ -18,9 +18,17 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@/components/*": ["./components/*"]
+      "@/types/*": ["./types/*"],
+      "@/app/*": ["./app/*"],
+      "@/components/*": ["./app/components/*"],
+      "@/providers/*": ["./app/providers/*"],
+      "@/hooks/*": ["./app/hooks/*"],
+      "@/utils/supabase/server": ["./utils/supabase/server"],
+      "@/lib/prisma": ["./lib/prisma"],
+      "@/lib/*": ["./lib/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

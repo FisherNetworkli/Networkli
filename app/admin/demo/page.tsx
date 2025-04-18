@@ -727,40 +727,37 @@ export default function DemoEnvironmentPage() {
   // Create demo group with celebrity leader
   const createDemoGroup = async (celebrityId: string, name: string, category: string) => {
     setActionLoading('group');
-    
+    toast.loading(`Creating demo group '${name}'...`); // Give specific feedback
+
     try {
-      const { data, error } = await supabase
-        .from('groups')
-        .insert([{
-          name,
-          description: `Demo group led by a celebrity in the ${category} industry`,
-          category,
-          created_by: celebrityId,
-          is_demo: true,
-        }]);
-      
-      if (error) {
-        console.error('Error creating demo group:', error);
-        toast.error('Failed to create demo group');
-        return;
+      // Call the server-side API route to perform the insertion
+      const response = await fetch('/api/admin/create-group', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ celebrityId, name, category }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Error creating demo group via API:', result);
+        throw new Error(result.error || `API Error (${response.status})`);
       }
-      
-      // Refresh groups
-      const { data: refreshedGroups } = await supabase
-        .from('groups')
-        .select('*')
-        .eq('is_demo', true);
-      
-      if (refreshedGroups) {
-        setDemoGroupsCount(refreshedGroups.length);
-      }
-      
-      toast.success('Demo group created successfully');
-    } catch (error) {
-      console.error('Error creating demo group:', error);
-      toast.error('Failed to create demo group');
+
+      toast.dismiss(); // Dismiss loading toast
+      toast.success(result.message || 'Demo group created successfully');
+
+      // No need to manually refresh group list here,
+      // fetchCurrentData in the finally block will update the counts.
+
+    } catch (error: any) {
+      console.error('Error calling create demo group API:', error);
+      toast.dismiss(); // Dismiss loading toast
+      toast.error(error.message || 'Failed to create demo group');
     } finally {
-      await fetchCurrentData(); // Refresh counts after creating group
+      // Refresh counts/data after attempt (success or fail)
+      // This already existed, just confirming it stays.
+      await fetchCurrentData(); 
       setActionLoading(null);
     }
   };
@@ -768,47 +765,36 @@ export default function DemoEnvironmentPage() {
   // Create demo event with celebrity host
   const createDemoEvent = async (celebrityId: string, title: string, category: string) => {
     setActionLoading('event');
+    toast.loading(`Creating demo event '${title}'...`);
     
     try {
-      // Create a future date for the event (2 weeks from now)
-      const futureDate = new Date();
-      futureDate.setDate(futureDate.getDate() + 14);
-      
-      const { data, error } = await supabase
-        .from('events')
-        .insert([{
-          title,
-          description: `Demo event hosted by a celebrity in the ${category} industry`,
-          date: futureDate.toISOString(),
-          location: 'Virtual',
-          format: 'Conference',
-          category,
-          host_id: celebrityId,
-          is_demo: true,
-        }]);
-      
-      if (error) {
-        console.error('Error creating demo event:', error);
-        toast.error('Failed to create demo event');
-        return;
+      // Call the server-side API route to perform the insertion
+      const response = await fetch('/api/admin/create-event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ celebrityId, title, category }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Error creating demo event via API:', result);
+        throw new Error(result.error || `API Error (${response.status})`);
       }
-      
-      // Refresh events
-      const { data: refreshedEvents } = await supabase
-        .from('events')
-        .select('*')
-        .eq('is_demo', true);
-      
-      if (refreshedEvents) {
-        setDemoEventsCount(refreshedEvents.length);
-      }
-      
-      toast.success('Demo event created successfully');
-    } catch (error) {
-      console.error('Error creating demo event:', error);
-      toast.error('Failed to create demo event');
+
+      toast.dismiss(); // Dismiss loading toast
+      toast.success(result.message || 'Demo event created successfully');
+
+      // No need to manually refresh event list here,
+      // fetchCurrentData in the finally block will update the counts.
+
+    } catch (error: any) {
+      console.error('Error calling create demo event API:', error);
+      toast.dismiss(); // Dismiss loading toast
+      toast.error(error.message || 'Failed to create demo event');
     } finally {
-      await fetchCurrentData(); // Refresh counts after creating event
+      // Refresh counts/data after attempt
+      await fetchCurrentData(); 
       setActionLoading(null);
     }
   };
@@ -1066,63 +1052,52 @@ export default function DemoEnvironmentPage() {
 
   // Function to handle seeding the prospect profile (MODIFIED)
   const seedProspectProfile = async () => {
-    // Basic validation (e.g., require name and email)
-    if (!prospectData.first_name || !prospectData.last_name || !prospectData.email) {
-      toast.error('Please enter at least First Name, Last Name, and Email for the prospect.');
-      return;
-    }
-
-    setActionLoading('prospect');
+    setActionLoading('seed-prospect'); // Use a specific key
     toast.loading('Seeding prospect profile...');
-    setSeededProspectId(null); // Clear old ID before seeding new one
-    setSeededProspectName(null);
 
-    // Prepare data for API (convert comma-separated strings to arrays)
-    const apiData = {
-      ...prospectData,
-      skills: prospectArrayInputs.skillsString?.split(',').map(s => s.trim()).filter(Boolean) || [],
-      interests: prospectArrayInputs.interestsString?.split(',').map(i => i.trim()).filter(Boolean) || [],
-      professional_goals: prospectArrayInputs.goalsString?.split(',').map(g => g.trim()).filter(Boolean) || [],
-      values: prospectArrayInputs.valuesString?.split(',').map(v => v.trim()).filter(Boolean) || [],
+    // Combine profile data and array inputs for the API
+    const payload = {
+        profileData: prospectData, // The state holding basic profile info
+        arrayInputs: prospectArrayInputs // The state holding comma-separated strings
     };
-
-    console.log("[Seed Prospect] Sending data to API:", apiData);
 
     try {
       const response = await fetch('/api/admin/seed-prospect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(apiData),
+        body: JSON.stringify(payload), // Send the combined payload
       });
 
       const result = await response.json();
       console.log("[Seed Prospect] API Response:", result);
 
       if (!response.ok) {
+        // Use error message from API response, fallback to status text
         throw new Error(result.error || result.message || `API Error (${response.status})`);
       }
 
       toast.dismiss();
-      toast.success('Prospect profile seeded successfully!');
-      
-      // Store the new prospect's ID and name
-      if (result.profileId) {
-         setSeededProspectId(result.profileId);
-         const fullName = `${prospectData.first_name || ''} ${prospectData.last_name || ''}`.trim();
-         setSeededProspectName(fullName || 'Prospect');
-         setSelectedProfileId(result.profileId); // Auto-select in showcase
+      toast.success(result.message || 'Prospect profile seeded successfully!');
+
+      // Store the new prospect's ID and name returned from the API
+      if (result.seededProspectId) {
+         setSeededProspectId(result.seededProspectId);
+         setSeededProspectName(result.seededProspectName || 'Prospect'); // Use name from API
+         setSelectedProfileId(result.seededProspectId); // Auto-select in showcase
       }
-      
-      // Optionally clear the form
-      // setProspectData({ ...initialProspectState }); 
-      // setProspectArrayInputs({ ...initialArrayInputState });
-      
+
+      // Optionally clear the form or keep it populated
+      // setProspectData({ /* initial state */ }); 
+      // setProspectArrayInputs({ /* initial state */ });
+
       // Refresh data to include the new prospect in the dropdown
+      // and update general counts
       await fetchCurrentData(); 
 
     } catch (error: any) {
       console.error('[Seed Prospect] Error:', error);
       toast.dismiss();
+      // Display the specific error message from the catch block
       toast.error(`Failed to seed prospect: ${error.message}`);
     } finally {
       setActionLoading(null);

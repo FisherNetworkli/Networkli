@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/utils/supabase'
+import { createAdminClient } from '@/utils/supabase/server'
 
 export async function GET() {
   try {
+    const supabaseAdmin = createAdminClient()
     // Initialize auth schema
     const initQueries = [
       // Create auth schema if it doesn't exist

@@ -21,11 +21,12 @@ import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import { useAuthContext } from '@/providers/AuthProvider';
 
 export default function ShareLandingPage() {
   const searchParams = useSearchParams();
-  const type = searchParams.get('type') || 'group'; // 'group' or 'event'
-  const id = searchParams.get('id');
+  const type = searchParams?.get('type') || 'group'; // 'group' or 'event'
+  const id = searchParams?.get('id');
   
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,6 +35,7 @@ export default function ShareLandingPage() {
   const [isJoining, setIsJoining] = useState(false);
   
   const supabase = createClientComponentClient();
+  const { user: authUser } = useAuthContext();
   
   useEffect(() => {
     const fetchUser = async () => {
@@ -85,12 +87,12 @@ export default function ShareLandingPage() {
           
           // Check if current user is a member
           let isMember = false;
-          if (user?.id) {
+          if (authUser?.id) {
             const { data: memberData } = await supabase
               .from('group_members')
               .select('*')
               .eq('group_id', id)
-              .eq('user_id', user.id)
+              .eq('user_id', authUser.id)
               .maybeSingle();
             
             isMember = !!memberData;
@@ -133,12 +135,12 @@ export default function ShareLandingPage() {
           
           // Check if current user is attending
           let isAttending = false;
-          if (user?.id) {
+          if (authUser?.id) {
             const { data: attendeeData } = await supabase
               .from('event_attendance')
               .select('*')
               .eq('event_id', id)
-              .eq('user_id', user.id)
+              .eq('user_id', authUser.id)
               .eq('status', 'attending')
               .maybeSingle();
             
@@ -165,10 +167,10 @@ export default function ShareLandingPage() {
     };
     
     fetchData();
-  }, [id, type, supabase, user?.id]);
+  }, [id, type, supabase, authUser?.id]);
   
   const handleJoinGroup = async () => {
-    if (!user?.id) {
+    if (!authUser?.id) {
       window.location.href = `/login?redirect=${encodeURIComponent(window.location.href)}`;
       return;
     }
@@ -180,13 +182,13 @@ export default function ShareLandingPage() {
         .from('group_members')
         .insert({
           group_id: id,
-          user_id: user.id
+          user_id: authUser.id
         });
       
       if (error) throw error;
       
       // Update local state
-      setData(prevData => ({
+      setData((prevData: any) => ({
         ...prevData,
         isMember: true
       }));
@@ -201,7 +203,7 @@ export default function ShareLandingPage() {
   };
   
   const handleAttendEvent = async () => {
-    if (!user?.id) {
+    if (!authUser?.id) {
       window.location.href = `/login?redirect=${encodeURIComponent(window.location.href)}`;
       return;
     }
@@ -213,14 +215,14 @@ export default function ShareLandingPage() {
         .from('event_attendance')
         .insert({
           event_id: id,
-          user_id: user.id,
+          user_id: authUser.id,
           status: 'attending'
         });
       
       if (error) throw error;
       
       // Update local state
-      setData(prevData => ({
+      setData((prevData: any) => ({
         ...prevData,
         isAttending: true
       }));

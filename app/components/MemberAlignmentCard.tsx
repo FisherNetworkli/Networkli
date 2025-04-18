@@ -1,4 +1,5 @@
-import { Avatar, Button, Card } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { UserIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
@@ -64,11 +65,15 @@ export function MemberAlignmentCard({
   return (
     <Card className={cn("flex flex-col overflow-hidden", className)}>
       <div className="flex items-start p-4 gap-4">
-        <Avatar
-          src={member.avatar_url}
-          fallback={<UserIcon className="h-6 w-6 text-muted-foreground" />}
-          className="h-12 w-12 rounded-full border"
-        />
+        <Avatar className="h-10 w-10">
+          <AvatarImage 
+            src={member.avatar_url || undefined} 
+            alt={member.full_name}
+          />
+          <AvatarFallback>
+            {member.full_name?.split(' ').map(n => n[0]).join('').toUpperCase() || '??'}
+          </AvatarFallback>
+        </Avatar>
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">

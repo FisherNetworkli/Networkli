@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSupabase } from "@/app/supabase-provider";
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export interface AlignedMember {
   id: string;
@@ -38,7 +38,7 @@ export function useMemberAlignment({
   minSimilarity = 0.1,
   enabled = true,
 }: UseMemberAlignmentOptions): UseMemberAlignmentResult {
-  const { supabaseClient } = useSupabase();
+  const supabase = createClientComponentClient();
   const [alignedMembers, setAlignedMembers] = useState<AlignedMember[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);

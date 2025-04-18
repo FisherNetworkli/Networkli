@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/app/utils/supabase/server";
+import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 
 export async function GET(
@@ -83,8 +83,9 @@ export async function GET(
           user_id,
           profiles:user_id(
             id, 
-            full_name,
-            headline,
+            first_name,
+            last_name,
+            title,
             avatar_url,
             skills,
             interests
@@ -100,8 +101,9 @@ export async function GET(
           user_id,
           profiles:user_id(
             id, 
-            full_name,
-            headline,
+            first_name,
+            last_name,
+            title,
             avatar_url,
             skills,
             interests
@@ -134,14 +136,17 @@ export async function GET(
     // Process and score the recommendations
     const recommendations = members
       .map((member) => {
-        const profile = member.profiles;
-        if (!profile) return null;
+        // Explicitly treat profile as the first element if it's an array from the query
+        const profile = Array.isArray(member.profiles) ? member.profiles[0] : member.profiles;
+        
+        // Add extra check: If profile is null/undefined after potential array access, return null
+        if (!profile) return null; 
 
         // Calculate match score based on shared skills and interests
-        const userSkills = new Set(userProfile.skills || []);
-        const userInterests = new Set(userProfile.interests || []);
-        const memberSkills = new Set(profile.skills || []);
-        const memberInterests = new Set(profile.interests || []);
+        const userSkills = new Set(userProfile?.skills || []);
+        const userInterests = new Set(userProfile?.interests || []);
+        const memberSkills = new Set(profile?.skills || []); // Optional chaining remains useful
+        const memberInterests = new Set(profile?.interests || []);
 
         const sharedSkills = [...userSkills].filter(skill => memberSkills.has(skill));
         const sharedInterests = [...userInterests].filter(interest => memberInterests.has(interest));
@@ -174,8 +179,8 @@ export async function GET(
 
         return {
           id: profile.id,
-          name: profile.full_name,
-          headline: profile.headline,
+          name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
+          headline: profile.title,
           avatar_url: profile.avatar_url,
           skills: profile.skills,
           interests: profile.interests,
@@ -184,8 +189,8 @@ export async function GET(
           already_connected: connectedUserIds.has(profile.id)
         };
       })
-      .filter(Boolean)
-      .sort((a, b) => b.match_score - a.match_score)
+      .filter((member): member is NonNullable<typeof member> => member !== null)
+      .sort((a, b) => (b?.match_score ?? 0) - (a?.match_score ?? 0))
       .slice(0, limit);
 
     return NextResponse.json({

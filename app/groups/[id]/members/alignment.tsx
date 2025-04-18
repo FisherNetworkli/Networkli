@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useAuthUser } from "@/app/hooks/useAuthUser";
-import AlignedMembersList from "@/app/components/AlignedMembersList";
-import { Button } from "@/app/components/ui/button";
+import { useAuthContext } from "@/providers/AuthProvider";
+import AlignedMembersList from "@/components/AlignedMembersList";
+import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 
 export default function GroupMemberAlignmentPage() {
   const router = useRouter();
   const { id: groupId } = router.query;
-  const { user, isLoading: userLoading } = useAuthUser();
+  const { user, loading } = useAuthContext();
   const [groupName, setGroupName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -34,7 +35,7 @@ export default function GroupMemberAlignmentPage() {
     fetchGroup();
   }, [groupId, user?.id]);
 
-  if (userLoading || isLoading) {
+  if (loading || isLoading) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="animate-pulse">
@@ -82,9 +83,6 @@ export default function GroupMemberAlignmentPage() {
         userId={user.id}
         entityType="group"
         entityId={groupId as string}
-        title="Recommended connections from this group"
-        initialLimit={6}
-        maxLimit={20}
       />
       
       <div className="mt-10 pt-6 border-t">
