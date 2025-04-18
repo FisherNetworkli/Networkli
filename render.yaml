@@ -1,8 +1,25 @@
 services:
-  - type: web
+  - type: web_service
     name: networkli
-    runtime: node
+    env: node
+    plan: free
     region: oregon
     branch: main
     buildCommand: npm install && npm run build
-    startCommand: npm run start 
+    startCommand: npm run start
+  # Scheduled job to refresh recommendation materialized views nightly
+  - type: cron_job
+    name: refresh_similarity_views
+    env: shell
+    region: oregon
+    schedule: "0 2 * * *"
+    command: psql "$DATABASE_URL" -c "SELECT public.refresh_similarity_views();"
+
+jobs:
+  - type: cron
+    name: refresh_similarity_views
+    schedule: "0 2 * * *"
+    command: >
+      psql "$DATABASE_URL"
+      -c "SELECT public.refresh_similarity_views();"
+    branch: main 
