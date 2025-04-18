@@ -547,12 +547,12 @@ export default function DemoEnvironmentPage() {
     }
   };
 
-  // Seed celebrity profiles (Keep as is, maybe rename button to "Seed Sample Profiles")
+  // Seed celebrity profiles (now calls backend API)
   const seedCelebrityProfiles = async () => {
     setActionLoading('profiles');
     toast.loading(`Seeding ${celebrityFilter} celebrity profiles...`);
     console.log(`[Seed Profiles] Starting seed for filter: ${celebrityFilter}`);
-    
+
     const celebritiesToSeed = SAMPLE_CELEBRITIES.filter(c => {
       if (celebrityFilter === 'all') return true;
       if (celebrityFilter === 'tech') return TECH_INDUSTRIES.includes(c.industry);
@@ -562,89 +562,33 @@ export default function DemoEnvironmentPage() {
     console.log(`[Seed Profiles] Found ${celebritiesToSeed.length} celebrities matching filter.`);
 
     if (celebritiesToSeed.length === 0) {
-       toast.dismiss();
-       toast.error(`No celebrities found for filter: ${celebrityFilter}`);
-       setActionLoading(null);
-       return;
+      toast.dismiss();
+      toast.error(`No celebrities found for filter: ${celebrityFilter}`);
+      setActionLoading(null);
+      return;
     }
-    
-    let seededCount = 0;
-    let existingCount = 0;
-    const errors: string[] = [];
 
     try {
-      for (const celebrity of celebritiesToSeed) {
-        console.log(`[Seed Profiles] Processing: ${celebrity.first_name} ${celebrity.last_name} (${celebrity.email})`);
-        // Check if profile already exists
-        const { data: existingProfile, error: checkError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('email', celebrity.email)
-          .maybeSingle();
-          
-        if (checkError) {
-            console.error(`[Seed Profiles] Error checking for ${celebrity.first_name} ${celebrity.last_name}:`, checkError);
-            errors.push(`Failed check for ${celebrity.first_name} ${celebrity.last_name}: ${checkError.message}`);
-            continue; // Skip this celebrity if check fails
-        }
-        
-        if (!existingProfile) {
-          console.log(`[Seed Profiles] ${celebrity.first_name} ${celebrity.last_name} does not exist. Attempting insert...`);
-          const profileToInsert = {
-              ...celebrity,
-              is_demo: true, // Ensure this is set!
-              // Map CelebrityProfile fields to DB columns if names differ, e.g.,
-              // organizer_id: celebrity.id (if DB uses organizer_id for groups creator)
-          };
-          const { error: insertError } = await supabase
-            .from('profiles')
-            .insert([profileToInsert]); // Insert the modified object
-          
-          if (insertError) {
-            console.error(`[Seed Profiles] Error inserting ${celebrity.first_name} ${celebrity.last_name}:`, insertError);
-            errors.push(`Failed insert for ${celebrity.first_name} ${celebrity.last_name}: ${insertError.message}`);
-          } else {
-            console.log(`[Seed Profiles] Successfully inserted ${celebrity.first_name} ${celebrity.last_name}.`);
-            seededCount++;
-          }
-        } else {
-           console.log(`[Seed Profiles] ${celebrity.first_name} ${celebrity.last_name} already exists (ID: ${existingProfile.id}). Skipping insert.`);
-           existingCount++;
-        }
-      }
-      
-      console.log("[Seed Profiles] Seeding loop finished. Refreshing profile list...");
-      // Refresh the *entire* celebrity list from DB after seeding
-      const { data: refreshedProfiles, error: refreshError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('is_celebrity', true);
-      
-      if (refreshError) {
-         console.error("[Seed Profiles] Error refreshing profiles:", refreshError);
-         toast.error('Seeding complete, but failed to refresh list.');
-      } else {
-        console.log(`[Seed Profiles] Refreshed list. Found ${refreshedProfiles?.length || 0} celebrity profiles.`);
-      }
-      
+      const response = await fetch('/api/admin/seed-profiles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ celebrities: celebritiesToSeed }),
+      });
+      const result = await response.json();
+      console.log('[Seed Profiles] API Response:', result);
       toast.dismiss();
-      let successMessage = `${seededCount} new profile(s) seeded.`;
-      if (existingCount > 0) successMessage += ` ${existingCount} already existed.`;
-      if (errors.length > 0) {
-          toast.error(`Seeding finished with ${errors.length} errors. Check console.`);
-          console.error("[Seed Profiles] Seeding errors encountered:", errors);
-      } else {
-          toast.success(successMessage);
+      if (!response.ok) {
+        throw new Error(result.error || result.message || `API Error (${response.status})`);
       }
-
-    } catch (error) {
-      console.error('[Seed Profiles] Unexpected error during seeding process:', error);
+      toast.success(result.message || `Seeded ${result.seededCount} profiles`);
+    } catch (error: any) {
+      console.error('[Seed Profiles] Error:', error);
       toast.dismiss();
-      toast.error('Failed to seed celebrity profiles due to an unexpected error.');
+      toast.error(`Failed to seed celebrity profiles: ${error.message}`);
     } finally {
-      await fetchCurrentData(); // Make sure counts are refreshed
+      await fetchCurrentData();
       setActionLoading(null);
-      console.log("[Seed Profiles] Seed process finished.");
+      console.log('[Seed Profiles] Seed process finished.');
     }
   };
 

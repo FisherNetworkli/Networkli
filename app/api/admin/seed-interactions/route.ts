@@ -1,10 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { createClient, PostgrestError } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { createAdminClient } from '@/utils/supabase/server';
 
 // Define type for interaction inserts explicitly matching the DB schema
 interface InteractionInsert {
@@ -25,21 +22,19 @@ export async function POST(request: Request) {
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  // Optional: Add Admin Role check here if needed
-  // --- End Auth Check ---
-
-  // --- Debug: Log if the service key is being loaded ---
-  console.log('[API Seed Interactions] Service Key Loaded (start):', supabaseServiceRoleKey?.substring(0, 5) ?? 'MISSING/UNDEFINED');
-  // --- End Debug ---
-
-  if (!supabaseUrl || !supabaseServiceRoleKey) {
-    console.error('[API Seed Interactions] Missing Supabase URL or Service Role Key.');
-    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+  // --- Admin Role Check ---
+  const { data: profile, error: profileError } = await supabaseUserClient
+    .from('profiles')
+    .select('role')
+    .eq('id', session.user.id)
+    .single();
+  if (profileError || !profile || profile.role !== 'admin') {
+    console.error('[API Seed Interactions] Forbidden: Admin role required');
+    return NextResponse.json({ error: 'Forbidden: Admin role required' }, { status: 403 });
   }
 
-  const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
-    auth: { autoRefreshToken: false, persistSession: false }
-  });
+  // Use admin client with service role key
+  const supabaseAdmin = createAdminClient();
 
   // --- Get target count from request body ---
   let targetCount = 100; // Default count

@@ -1,202 +1,241 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/utils/supabase/server';
 
-// Assumes execute_sql function exists
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-// Data Interfaces (Can be refined based on actual schema)
-interface GroupSeedData {
+// Define types for the group structure
+interface GroupData {
   name: string;
-  description?: string | null;
-  category?: string | null;
-  industry?: string | null;
-  location?: string | null;
+  description: string;
+  category: string;
+  industry?: string;
+  location?: string;
   is_demo: boolean;
 }
-
-interface MembershipInsert {
-  group_id: string;
-  user_id: string;
-  role: string; 
-  is_demo: boolean;
-}
-
-// Helper function for delay (might still be needed for reads, but not between writes)
-// const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function POST(request: Request) {
+  console.log('[API Seed Groups] Route handler started');
+  
+  // Check environment variables early
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    console.error('[API Seed Groups] Missing Supabase environment variables');
+    return NextResponse.json(
+      { 
+        error: 'Server configuration error', 
+        details: {
+          hasUrl: !!supabaseUrl,
+          hasServiceKey: !!supabaseServiceRoleKey 
+        }
+      }, 
+      { status: 500 }
+    );
+  }
+
   const cookieStore = cookies();
   const supabaseUserClient = createRouteHandlerClient({ cookies: () => cookieStore });
 
-  // --- Auth Check ---
-  const { data: { session } } = await supabaseUserClient.auth.getSession();
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  // --- End Auth Check ---
-
-  if (!supabaseUrl || !supabaseServiceRoleKey) {
-    console.error('[API Seed Combined] Missing Supabase URL or Service Role Key.');
-    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
-  }
-
-  const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
-    auth: { autoRefreshToken: false, persistSession: false }
-  });
-
-  // --- Configurable options ---
-  const minGroupsPerUser = 1;
-  const maxGroupsPerUser = 3;
-  // --- End Configurable options ---
-
-  let groupsToSeed: GroupSeedData[] = [];
   try {
-    const body = await request.json();
-    if (body.groups && Array.isArray(body.groups)) {
-        groupsToSeed = body.groups.filter((g: any) => g.name && g.is_demo === true);
-    } else {
-        return NextResponse.json({ error: 'Invalid request body: missing groups array.' }, { status: 400 });
+    // --- Auth Check ---
+    const { data: { session } } = await supabaseUserClient.auth.getSession();
+    if (!session) {
+      console.error('[API Seed Groups] No authenticated session found');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    if (groupsToSeed.length === 0) {
-         return NextResponse.json({ message: 'No valid groups provided to seed.', seededGroups: 0, seededMemberships: 0 }, { status: 200 });
+
+    // --- Admin Role Check ---
+    const { data: profile, error: profileError } = await supabaseUserClient
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+
+    if (profileError) {
+      console.error('[API Seed Groups] Error checking admin role:', profileError);
+      return NextResponse.json({ error: 'Error verifying permissions' }, { status: 500 });
     }
-  } catch (e) { 
-      console.error('[API Seed Combined] Error parsing request body:', e);
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
-  }
 
-  console.log(`[API Seed Combined] Starting process for ${groupsToSeed.length} groups...`);
-
-  let seededGroupsCount = 0;
-  let seededMembershipsCount = 0;
-  const errors: string[] = [];
-  let groupsRlsDisabled = false;
-  let membersRlsDisabled = false;
-
-  try {
-    // --- 1. Fetch Demo Users --- 
-    console.log("[API Seed Combined] Fetching demo users...");
-    const { data: users, error: userError } = await supabaseAdmin
-        .from('profiles').select('id').eq('is_demo', true);
-    if (userError) throw new Error(`Failed to fetch demo users: ${userError.message}`);
-    if (!users || users.length === 0) throw new Error('No demo users found.');
-    const userIds = users.map(u => u.id);
-    console.log(`[API Seed Combined] Found ${userIds.length} users.`);
-
-    // --- 2. Seed Groups and get IDs --- 
-    console.log("[API Seed Combined] Attempting to DISABLE RLS for groups...");
-    const { error: disableGroupsRlsError } = await supabaseAdmin.rpc('execute_sql', { sql: 'ALTER TABLE public.groups DISABLE ROW LEVEL SECURITY;' });
-    if (disableGroupsRlsError) throw new Error(`Failed to disable RLS for groups: ${disableGroupsRlsError.message}`);
-    groupsRlsDisabled = true;
-    console.log("[API Seed Combined] RLS disabled for groups.");
-
-    console.log(`[API Seed Combined] Inserting ${groupsToSeed.length} groups and selecting IDs...`);
-    const { data: insertedGroups, error: insertGroupsError } = await supabaseAdmin
-        .from('groups') 
-        .insert(groupsToSeed)
-        .select('id'); // Select ONLY the ID of newly inserted groups
-
-    if (insertGroupsError) {
-        console.error(`[API Seed Combined] Group Insert Error:`, insertGroupsError);
-        throw new Error(`Group Insert Error: ${insertGroupsError.message}`); // Throw to stop execution
+    if (!profile || profile.role !== 'admin') {
+      console.error('[API Seed Groups] User is not an admin:', session.user.id);
+      return NextResponse.json({ error: 'Forbidden: Admin role required' }, { status: 403 });
     }
-    seededGroupsCount = insertedGroups?.length ?? 0;
-    const newGroupIds = insertedGroups?.map(g => g.id) || [];
-    console.log(`[API Seed Combined] Inserted ${seededGroupsCount} groups.`);
 
-    if (newGroupIds.length === 0) {
-        console.log("[API Seed Combined] No new groups were inserted, skipping membership seeding.");
-        // No need to throw error, just report 0 memberships
-    } else {
-        // --- 3. Generate & Seed Memberships --- 
-        console.log("[API Seed Combined] Generating memberships...");
-        const membershipsToInsert: MembershipInsert[] = [];
-        const existingMemberships = new Set<string>(); 
-        userIds.forEach(userId => {
-            const groupsToJoinCount = Math.floor(Math.random() * (maxGroupsPerUser - minGroupsPerUser + 1)) + minGroupsPerUser;
-            const shuffledGroupIds = [...newGroupIds].sort(() => 0.5 - Math.random());
-            for (let i = 0; i < groupsToJoinCount && i < shuffledGroupIds.length; i++) {
-                const groupId = shuffledGroupIds[i];
-                const key = `${userId}-${groupId}`;
-                if (!existingMemberships.has(key)) {
-                    membershipsToInsert.push({ user_id: userId, group_id: groupId, role: 'member', is_demo: true });
-                    existingMemberships.add(key);
-                }
-            }
-        });
+    // Parse request data
+    let requestData;
+    try {
+      requestData = await request.json();
+    } catch (e) {
+      console.error('[API Seed Groups] Error parsing request body:', e);
+      return NextResponse.json({ error: 'Invalid request format' }, { status: 400 });
+    }
 
-        if (membershipsToInsert.length > 0) {
-            console.log("[API Seed Combined] Attempting to DISABLE RLS for group_members...");
-            const { error: disableMembersRlsError } = await supabaseAdmin.rpc('execute_sql', { sql: 'ALTER TABLE public.group_members DISABLE ROW LEVEL SECURITY;' });
-            if (disableMembersRlsError) throw new Error(`Failed to disable RLS for group_members: ${disableMembersRlsError.message}`);
-            membersRlsDisabled = true;
-            console.log("[API Seed Combined] RLS disabled for group_members.");
+    if (!requestData.groups || !Array.isArray(requestData.groups)) {
+      console.error('[API Seed Groups] Missing or invalid groups array in request body');
+      return NextResponse.json({ error: 'Missing groups array in request' }, { status: 400 });
+    }
 
-            console.log(`[API Seed Combined] Inserting ${membershipsToInsert.length} memberships...`);
-            const { data: insertedMemberships, error: insertMembersError } = await supabaseAdmin
-                .from('group_members').insert(membershipsToInsert).select();
-            
-            if (insertMembersError) {
-                console.error(`[API Seed Combined] Membership Insert Error:`, insertMembersError);
-                // Don't throw, just record error and count
-                errors.push(`Membership Insert Error: ${insertMembersError.message}`); 
-                seededMembershipsCount = 0;
-            } else {
-                seededMembershipsCount = insertedMemberships?.length ?? membershipsToInsert.length;
-                console.log(`[API Seed Combined] Inserted ${seededMembershipsCount} memberships.`);
-            }
-        } else {
-            console.log("[API Seed Combined] No new memberships generated.");
+    const groups = requestData.groups as GroupData[];
+    console.log(`[API Seed Groups] Received ${groups.length} groups to seed`);
+
+    // --- Create Admin Client ---
+    const supabaseAdmin = createAdminClient();
+    console.log('[API Seed Groups] Admin client created successfully');
+
+    // --- Get Demo Profile IDs ---
+    const { data: demoProfiles, error: profilesError } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('is_demo', true)
+      .limit(100);
+
+    if (profilesError) {
+      console.error('[API Seed Groups] Error fetching demo profiles:', profilesError);
+      return NextResponse.json({ error: 'Error fetching demo profiles' }, { status: 500 });
+    }
+
+    if (!demoProfiles || demoProfiles.length < 1) {
+      console.error('[API Seed Groups] No demo profiles found to assign as group creators/members');
+      return NextResponse.json({ 
+        error: 'No demo profiles found', 
+        details: 'Need at least one demo profile to create groups',
+      }, { status: 400 });
+    }
+
+    const profileIds = demoProfiles.map(p => p.id);
+    console.log(`[API Seed Groups] Found ${profileIds.length} demo profiles to use as organizers/members`);
+
+    // --- Create Groups ---
+    const createdGroups = [];
+    const errors = [];
+    let seededGroupsCount = 0;
+    let seededMembershipsCount = 0;
+
+    for (const group of groups) {
+      try {
+        // Assign a random profile as the creator
+        const creatorId = profileIds[Math.floor(Math.random() * profileIds.length)];
+        
+        // Insert the group
+        const { data: insertedGroup, error: groupError } = await supabaseAdmin
+          .from('groups')
+          .insert({
+            name: group.name,
+            description: group.description,
+            category: group.category,
+            industry: group.industry || group.category, // Fallback to category if industry missing
+            location: group.location || 'Global', // Default location
+            created_by: creatorId,
+            is_demo: true
+          })
+          .select()
+          .single();
+          
+        if (groupError) {
+          console.error(`[API Seed Groups] Error inserting group ${group.name}:`, groupError);
+          errors.push({ 
+            type: 'group', 
+            name: group.name, 
+            message: groupError.message, 
+            code: groupError.code 
+          });
+          continue; // Skip to next group
         }
+        
+        if (!insertedGroup) {
+          console.error(`[API Seed Groups] Group ${group.name} inserted but no data returned`);
+          continue; // Skip to next group
+        }
+        
+        seededGroupsCount++;
+        createdGroups.push(insertedGroup);
+        console.log(`[API Seed Groups] Created group: ${insertedGroup.name} (${insertedGroup.id})`);
+        
+        // Add 3-10 random members to each group
+        const memberCount = 3 + Math.floor(Math.random() * 8); // 3-10 members
+        const groupMembers = new Set<string>();
+        groupMembers.add(creatorId); // Creator is always a member
+        
+        // Add random unique members
+        while (groupMembers.size < Math.min(memberCount, profileIds.length)) {
+          const randomId = profileIds[Math.floor(Math.random() * profileIds.length)];
+          groupMembers.add(randomId);
+        }
+        
+        // Insert memberships
+        for (const memberId of groupMembers) {
+          try {
+            const { error: membershipError } = await supabaseAdmin
+              .from('group_memberships')
+              .insert({
+                group_id: insertedGroup.id,
+                user_id: memberId,
+                role: memberId === creatorId ? 'admin' : 'member',
+                status: 'active',
+                is_demo: true
+              });
+              
+            if (membershipError) {
+              console.error(`[API Seed Groups] Error adding member ${memberId} to group ${insertedGroup.id}:`, membershipError);
+              errors.push({
+                type: 'membership',
+                group: insertedGroup.name,
+                message: membershipError.message,
+                code: membershipError.code
+              });
+            } else {
+              seededMembershipsCount++;
+            }
+          } catch (err) {
+            console.error(`[API Seed Groups] Exception adding member to group:`, err);
+            errors.push({
+              type: 'membership',
+              group: insertedGroup.name,
+              message: err instanceof Error ? err.message : String(err)
+            });
+          }
+        }
+        
+        console.log(`[API Seed Groups] Added ${groupMembers.size} members to group ${insertedGroup.name}`);
+        
+      } catch (err) {
+        console.error(`[API Seed Groups] Unexpected error processing group ${group.name}:`, err);
+        errors.push({
+          type: 'group',
+          name: group.name,
+          message: err instanceof Error ? err.message : String(err)
+        });
+      }
     }
 
-    // --- Success Response --- 
-    console.log("[API Seed Combined] Seeding process finished before RLS re-enable.");
-    if (errors.length > 0) {
-       // Report partial success with errors
-       return NextResponse.json({ 
-           message: `Completed with ${errors.length} errors during membership insert. First error: ${errors[0]}`, 
-           seededGroups: seededGroupsCount,
-           seededMemberships: seededMembershipsCount, // Report count even if errors occurred
-           errors: errors 
-       }, { status: 207 });
-    }
-    return NextResponse.json({ 
-        message: `${seededGroupsCount} groups and ${seededMembershipsCount} memberships seeded successfully.`, 
-        seededGroups: seededGroupsCount,
-        seededMemberships: seededMembershipsCount
-    }, { status: 200 });
+    console.log(`[API Seed Groups] Created ${seededGroupsCount} groups with ${seededMembershipsCount} memberships`);
+    console.log(`[API Seed Groups] Encountered ${errors.length} errors`);
+    
+    return NextResponse.json({
+      message: `Created ${seededGroupsCount} groups and ${seededMembershipsCount} memberships`,
+      seededGroups: seededGroupsCount,
+      seededMemberships: seededMembershipsCount,
+      errors: errors.length > 0 ? errors : undefined,
+      success: errors.length === 0
+    }, errors.length > 0 ? { status: 207 } : { status: 200 });
 
   } catch (error: any) {
-    console.error('[API Seed Combined] CRITICAL ERROR:', error);
-    errors.push(error.message);
-    // Ensure counts reflect state before the critical error if possible
+    console.error('[API Seed Groups] Unhandled error:', error);
+    
+    // Log environment variable status (safely)
+    const envCheck = {
+      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+    };
+    console.error('[API Seed Groups] Environment check:', envCheck);
+    
     return NextResponse.json({ 
-        error: 'Internal server error during combined group/membership seeding', 
-        details: error.message, 
-        seededGroups: seededGroupsCount, // Groups might have been seeded before error
-        seededMemberships: 0, // Memberships likely failed
-        errors: errors 
+      error: 'Internal server error', 
+      details: error.message,
+      code: error.code || 'unknown'
     }, { status: 500 });
-
-  } finally {
-     // --- Re-enable RLS --- 
-    if (membersRlsDisabled) {
-      console.log("[API Seed Combined] Attempting to RE-ENABLE RLS for group_members...");
-      const { error: enableRlsError } = await supabaseAdmin.rpc('execute_sql', { sql: 'ALTER TABLE public.group_members ENABLE ROW LEVEL SECURITY;' });
-      if (enableRlsError) console.error('[API Seed Combined] FAILED TO RE-ENABLE RLS for group_members:', enableRlsError);
-      else console.log("[API Seed Combined] RLS re-enabled for group_members.");
-    }
-    if (groupsRlsDisabled) {
-      console.log("[API Seed Combined] Attempting to RE-ENABLE RLS for groups...");
-      const { error: enableRlsError } = await supabaseAdmin.rpc('execute_sql', { sql: 'ALTER TABLE public.groups ENABLE ROW LEVEL SECURITY;' });
-      if (enableRlsError) console.error('[API Seed Combined] FAILED TO RE-ENABLE RLS for groups:', enableRlsError);
-      else console.log("[API Seed Combined] RLS re-enabled for groups.");
-    }
   }
 }
 
