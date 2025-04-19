@@ -83,6 +83,27 @@ module.exports = {
     require('@tailwindcss/typography'),
     require('@tailwindcss/forms'),
     require('@tailwindcss/aspect-ratio'),
-      require("tailwindcss-animate")
-],
+    require("tailwindcss-animate"),
+    // Custom components for cohesive app-like styling
+    function({ addComponents, theme }) {
+      addComponents({
+        '.card-frosted': {
+          'background-color': 'rgba(255, 255, 255, 0.2)',
+          'backdrop-filter': 'blur(16px)',
+          'border-radius': theme('borderRadius.lg'),
+          'box-shadow': '0 10px 30px -10px rgba(0,0,0,0.1)',
+          padding: theme('spacing.6'),
+        },
+        '.section': {
+          padding: `${theme('spacing.6')} ${theme('spacing.4')}`,
+          '@screen md': {
+            padding: `${theme('spacing.8')} ${theme('spacing.8')}`,
+          }
+        },
+        '.button-primary': {
+          '@apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[rgb(var(--connection-blue))] hover:bg-[rgb(var(--connection-blue-70))] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--connection-blue-70))]': {},
+        }
+      })
+    }
+  ],
 } 

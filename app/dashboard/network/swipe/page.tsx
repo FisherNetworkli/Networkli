@@ -25,8 +25,22 @@ interface Profile {
   interests?: string[];
 }
 
+// --- Define unified swipe item type ---
+type SwipeItem = {
+  id: string;
+  type: 'user' | 'group' | 'event';
+  name?: string;         // for user full name or group name
+  title?: string;        // for profile title or event title
+  avatar_url?: string;   // for user avatar
+  industry?: string;     // for profile or group metadata
+  date?: string;         // for event date
+  location?: string;     // for profile or event location
+  company?: string;
+  skills?: string[];
+};
+
 export default function SwipePage() {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [items, setItems] = useState<SwipeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [user, setUser] = useState<User | null>(null);
@@ -40,31 +54,65 @@ export default function SwipePage() {
   useEffect(() => {
     const fetchUserAndProfiles = async () => {
       try {
-        // Get current user
+        // 1) Authenticate and get user ID
         const { data: { session }, error: userError } = await supabase.auth.getSession();
-        if (userError || !session) {
-          console.error('Error fetching user:', userError);
+        if (userError || !session) throw new Error('Not authenticated');
+        setUser(session.user);
+        const userId = session.user.id;
+        // Demo override for our showcase account
+        const DEMO_USER_ID = 'b2ebcc2a-74db-4f27-b313-7b6031f7e610';
+        if (userId === DEMO_USER_ID) {
+          // Hardcoded demo swipe items
+          const demoItems: SwipeItem[] = [
+            { id: 'demo-user-1', type: 'user', name: 'Elon Musk', title: 'CEO @ SpaceX', avatar_url: '/placeholder-avatar.png', skills: ['Innovation', 'Leadership'] },
+            { id: 'demo-user-2', type: 'user', name: 'Marie Curie', title: 'Physicist', avatar_url: '/placeholder-avatar.png', skills: ['Research', 'Chemistry'] },
+            { id: 'demo-grp-1', type: 'group', name: 'Tech Pioneers', industry: 'Technology' },
+            { id: 'demo-grp-2', type: 'group', name: 'Design Gurus', industry: 'Design' },
+            { id: 'demo-evt-1', type: 'event', title: 'AI Future Summit', date: '2025-08-01', location: 'San Francisco' },
+            { id: 'demo-evt-2', type: 'event', title: 'Product Hackathon', date: '2025-09-15', location: 'New York' }
+          ];
+          setItems(demoItems);
+          setLoading(false);
           return;
         }
-        
-        setUser(session.user);
-        
-        // Fetch recommendations from the API
-        const response = await fetch(`/api/recommendations?limit=10`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch recommendations');
-        }
-        
-        const data = await response.json();
-        setProfiles(data.recommendations || []);
+
+        // 2) Fetch peers, groups, events in parallel for non-demo users
+        const [uRes, gRes, eRes] = await Promise.all([
+          fetch(`/api/recommend/users/${userId}?limit=10`),
+          fetch(`/api/recommend/groups/${userId}?limit=10`),
+          fetch(`/api/recommend/events/${userId}?limit=10`)
+        ]);
+        const [uJson, gJson, eJson] = await Promise.all([uRes.json(), gRes.json(), eRes.json()]);
+
+        // 3) Normalize into SwipeItem[]
+        const userItems: SwipeItem[] = (uJson as any[]).map(u => ({
+          id: u.profile_id || u.id,
+          type: 'user',
+          name: u.first_name + ' ' + u.last_name,
+          title: u.headline || u.title,
+          company: u.company,
+          avatar_url: u.avatar_url,
+          industry: u.industry,
+          skills: u.skills
+        }));
+        const groupItems: SwipeItem[] = (gJson as any[]).map(g => ({
+          id: g.group_id || g.id,
+          type: 'group',
+          name: g.name,
+          industry: g.category
+        }));
+        const eventItems: SwipeItem[] = (eJson as any[]).map(e => ({
+          id: e.event_id || e.id,
+          type: 'event',
+          title: e.name || e.title,
+          date: e.date,
+          location: e.location
+        }));
+
+        // 4) Combine and set into state
+        setItems([...userItems, ...groupItems, ...eventItems]);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching swipe items:', error);
       } finally {
         setLoading(false);
       }
@@ -103,21 +151,21 @@ export default function SwipePage() {
   // Handle card swipe
   const handleDragEnd = async (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 100; // Min drag distance for a swipe
-    const profile = profiles[currentIndex];
+    const item = items[currentIndex];
     
-    if (!profile) return;
+    if (!item) return;
     
     if (info.offset.x > threshold) {
       // Swipe right - like
       setSwipeAnimation('right');
       await controls.start({ x: 500, opacity: 0, transition: { duration: 0.5 } });
-      recordInteraction(profile.id, 'swipe_right');
+      recordInteraction(item.id, 'swipe_right');
       showNextProfile();
     } else if (info.offset.x < -threshold) {
       // Swipe left - pass
       setSwipeAnimation('left');
       await controls.start({ x: -500, opacity: 0, transition: { duration: 0.5 } });
-      recordInteraction(profile.id, 'swipe_left');
+      recordInteraction(item.id, 'swipe_left');
       showNextProfile();
     } else {
       // Return to center if not enough movement
@@ -127,34 +175,34 @@ export default function SwipePage() {
 
   // Move to the next profile
   const showNextProfile = () => {
-    if (currentIndex < profiles.length - 1) {
+    if (currentIndex < items.length - 1) {
       setCurrentIndex(prev => prev + 1);
       controls.start({ x: 0, opacity: 1, scale: 1, transition: { duration: 0 } });
       setSwipeAnimation('none');
     } else {
       // No more profiles
-      setProfiles([]);
+      setItems([]);
     }
   };
 
   // Button handlers
   const handleLike = async () => {
-    const profile = profiles[currentIndex];
-    if (!profile) return;
+    const item = items[currentIndex];
+    if (!item) return;
     
     setSwipeAnimation('right');
     await controls.start({ x: 500, opacity: 0, transition: { duration: 0.5 } });
-    recordInteraction(profile.id, 'swipe_right');
+    recordInteraction(item.id, 'swipe_right');
     showNextProfile();
   };
 
   const handlePass = async () => {
-    const profile = profiles[currentIndex];
-    if (!profile) return;
+    const item = items[currentIndex];
+    if (!item) return;
     
     setSwipeAnimation('left');
     await controls.start({ x: -500, opacity: 0, transition: { duration: 0.5 } });
-    recordInteraction(profile.id, 'swipe_left');
+    recordInteraction(item.id, 'swipe_left');
     showNextProfile();
   };
 
@@ -163,7 +211,7 @@ export default function SwipePage() {
     router.push(`/dashboard/profile/${id}`);
   };
 
-  const currentProfile = profiles[currentIndex];
+  const currentItem = items[currentIndex];
 
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-4 py-8">
@@ -177,7 +225,7 @@ export default function SwipePage() {
             <Skeleton className="h-12 w-12 rounded-full" />
           </div>
         </div>
-      ) : profiles.length === 0 ? (
+      ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-8 border border-gray-200 rounded-xl shadow-sm">
           <h2 className="text-xl font-medium mb-4">No more profiles to show</h2>
           <p className="text-gray-500 mb-4 text-center">
@@ -199,18 +247,23 @@ export default function SwipePage() {
             className="absolute w-full"
           >
             <Card className="overflow-hidden rounded-xl shadow-md bg-white h-[500px] flex flex-col">
+              {/* Type Label */}
+              <div className="absolute top-4 left-4 z-10 bg-white bg-opacity-80 px-3 py-1 rounded text-sm font-semibold">
+                {currentItem?.type === 'user' ? 'Individual' : currentItem?.type === 'group' ? 'Group' : 'Event'}
+              </div>
               <div className="relative h-72">
-                {currentProfile?.avatar_url ? (
+                {/* Render card differently by item.type */}
+                {currentItem?.type === 'user' && currentItem.avatar_url ? (
                   <Image
-                    src={currentProfile.avatar_url}
-                    alt={currentProfile.full_name}
+                    src={currentItem.avatar_url!}
+                    alt={currentItem.name!}
                     fill
                     className="object-cover"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-blue-300 to-purple-400 flex items-center justify-center">
                     <span className="text-4xl font-bold text-white">
-                      {currentProfile?.full_name?.charAt(0) || '?'}
+                      {currentItem?.name?.charAt(0) || '?'}
                     </span>
                   </div>
                 )}
@@ -218,43 +271,41 @@ export default function SwipePage() {
               
               <div className="p-5 flex-1 overflow-y-auto">
                 <div className="flex justify-between items-start mb-2">
-                  <h2 className="text-xl font-bold">{currentProfile?.full_name}</h2>
+                  <h2 className="text-xl font-bold">
+                    {currentItem?.type === 'user' && currentItem.name}
+                    {currentItem?.type === 'group' && currentItem.name}
+                    {currentItem?.type === 'event' && currentItem.title}
+                  </h2>
                   <Badge variant="outline" className="bg-blue-50">
-                    {currentProfile?.industry || 'Professional'}
+                    {currentItem?.industry || 'Professional'}
                   </Badge>
                 </div>
                 
-                {currentProfile?.title && (
+                {/* Show subtitle for user or event */}
+                {currentItem?.type === 'user' && currentItem.title && (
                   <p className="text-gray-700 font-medium">
-                    {currentProfile.title} {currentProfile.company ? `at ${currentProfile.company}` : ''}
+                    {currentItem.title} {currentItem.company ? `at ${currentItem.company}` : ''}
+                  </p>
+                )}
+                {currentItem?.type === 'event' && currentItem.date && (
+                  <p className="text-gray-700 font-medium">
+                    {new Date(currentItem.date).toLocaleDateString()}
                   </p>
                 )}
                 
-                {currentProfile?.location && (
-                  <p className="text-gray-500 text-sm mb-3">
-                    📍 {currentProfile.location}
-                  </p>
+                {/* Show location for user and event */}
+                {currentItem?.location && (
+                  <p className="text-gray-500 text-sm mb-3">📍 {currentItem.location}</p>
                 )}
                 
-                {currentProfile?.bio && (
-                  <p className="text-gray-600 mb-4 line-clamp-3">
-                    {currentProfile.bio}
-                  </p>
-                )}
-                
-                {currentProfile?.skills && currentProfile.skills.length > 0 && (
+                {/* Show skills for user */}
+                {currentItem?.type === 'user' && (currentItem.skills || []).length > 0 && (
                   <div className="mb-3">
                     <p className="text-sm font-medium text-gray-700 mb-1">Skills</p>
                     <div className="flex flex-wrap gap-1">
-                      {currentProfile.skills.slice(0, 5).map((skill, i) => (
-                        <Badge key={i} variant="secondary" className="bg-gray-100 text-gray-700">
-                          {skill}
-                        </Badge>
-                      ))}
-                      {currentProfile.skills.length > 5 && (
-                        <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                          +{currentProfile.skills.length - 5} more
-                        </Badge>
+                      {(currentItem.skills || []).slice(0,5).map((skill, i) => (<Badge key={i}>{skill}</Badge>))}
+                      {( (currentItem.skills || []).length > 5 ) && (
+                        <Badge>+{(currentItem.skills || []).length - 5} more</Badge>
                       )}
                     </div>
                   </div>
@@ -263,9 +314,9 @@ export default function SwipePage() {
                 <Button 
                   variant="outline" 
                   className="w-full mt-2"
-                  onClick={() => viewProfile(currentProfile?.id)}
+                  onClick={() => router.push('/dashboard/network/swipe')}
                 >
-                  View Full Profile
+                  View Details
                 </Button>
               </div>
             </Card>

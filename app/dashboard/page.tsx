@@ -15,6 +15,8 @@ import Link from 'next/link';
 import { Loader2, Users, UserCheck, Lightbulb, Sparkles, Calendar, Tv } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import toast from 'react-hot-toast';
+import Recommendations from '@/app/dashboard/components/Recommendations';
+import TrendingEvents from '@/app/dashboard/components/TrendingEvents';
 
 // Define types for recommendations
 interface Connection {
@@ -168,6 +170,35 @@ export default function DashboardPage() {
       if (!user) return;
       
       setRecommendationLoading(true);
+      // Demo override for showcase account
+      const DEMO_USER_ID = 'b2ebcc2a-74db-4f27-b313-7b6031f7e610';
+      if (user.id === DEMO_USER_ID) {
+        // Hardcoded demo recommendations
+        const demoProfiles: ApiRecommendation[] = [
+          { id: 'demo-user-1', first_name: 'Elon', last_name: 'Musk', title: 'CEO @ SpaceX', avatar_url: '/placeholder-avatar.png' },
+          { id: 'demo-user-2', first_name: 'Marie', last_name: 'Curie', title: 'Physicist', avatar_url: '/placeholder-avatar.png' }
+        ];
+        const demoGroups: ApiRecommendation[] = [
+          { id: 'demo-grp-1', name: 'Tech Pioneers' },
+          { id: 'demo-grp-2', name: 'Design Gurus' }
+        ];
+        const demoEvents: ApiRecommendation[] = [
+          { id: 'demo-evt-1', title: 'AI Future Summit', date: '2025-08-01', location: 'San Francisco' },
+          { id: 'demo-evt-2', title: 'Product Hackathon', date: '2025-09-15', location: 'New York' }
+        ];
+        setProfileRecommendations(demoProfiles);
+        setGroupRecommendations(demoGroups);
+        setEventRecommendations(demoEvents);
+        // Map to UI structure
+        setUiRecommendations({
+          connections: demoProfiles.map(p => ({ id: p.id, name: `${p.first_name} ${p.last_name}`, title: p.title || '', avatar: p.avatar_url || null })),
+          groups: demoGroups.map(g => ({ id: g.id, name: g.name || '', members: 0, category: '' })),
+          events: demoEvents.map(e => ({ id: e.id, name: e.title || '', date: e.date || '', location: e.location || '' })),
+          skills: ['Networking', 'Innovation']
+        });
+        setRecommendationLoading(false);
+        return;
+      }
       console.log(`[Dashboard] Fetching recommendations for logged-in user: ${user.id}`);
 
       let accessToken: string | null = null;
@@ -190,22 +221,28 @@ export default function DashboardPage() {
       };
 
       try {
-        const recTypes: ('profile' | 'group' | 'event')[] = ['profile', 'group', 'event'];
-        const promises = recTypes.map(type => 
-          fetch(`/api/recommendations?profile_id=${user.id}&type=${type}&limit=3`, { headers })
+        const limit = 3;
+        const endpoints: Record<'profile'|'group'|'event', string> = {
+          profile: `/api/recommend/users/${user.id}?limit=${limit}`,
+          group: `/api/recommend/groups/${user.id}?limit=${limit}`,
+          event: `/api/recommend/events/${user.id}?limit=${limit}`,
+        };
+        const promises = (Object.keys(endpoints) as ('profile'|'group'|'event')[]).map(type =>
+          fetch(endpoints[type], { headers })
             .then(async res => {
-               if (!res.ok) {
-                   const errorData = await res.json().catch(() => ({})); // Try to parse error
-                   console.error(`[Dashboard Recs] API Error (${res.status}) fetching ${type}:`, errorData.error || res.statusText);
-                   return { type, data: { recommendations: [] } }; // Return empty on error
-               }
-               return res.json().then(data => ({ type, data }));
+              if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                console.error(`[Dashboard Recs] Proxy API Error (${res.status}) fetching ${type}:`, errorData.error || res.statusText);
+                return { type, data: { recommendations: [] } };
+              }
+              return res.json().then(data => ({ type, data }));
             })
         );
         
         const results = await Promise.allSettled(promises);
         
-        const fetchedRecommendations: { [key: string]: ApiRecommendation[] } = {
+        // Support both wrapped { recommendations: [...] } and direct array returns
+        const fetchedRecommendations: Record<'profile'|'group'|'event', any[]> = {
           profile: [],
           group: [],
           event: []
@@ -214,45 +251,111 @@ export default function DashboardPage() {
         results.forEach(result => {
           if (result.status === 'fulfilled' && result.value) {
             const { type, data } = result.value;
-            // Basic validation of received data structure
-            if (data && Array.isArray(data.recommendations)) {
-                fetchedRecommendations[type] = data.recommendations;
+            let items: any[] = [];
+            if (data && Array.isArray((data as any).recommendations)) {
+              items = (data as any).recommendations;
+            } else if (Array.isArray(data)) {
+              items = data;
             } else {
-                 console.warn(`[Dashboard Recs] Unexpected data structure for type ${type}:`, data);
+              console.warn(`[Dashboard Recs] Unexpected data structure for type ${type}:`, data);
             }
+            fetchedRecommendations[type] = items;
           }
         });
 
         console.log("[Dashboard Recs] Fetched API recommendations:", fetchedRecommendations);
         
         // Set the new state
-        setProfileRecommendations(fetchedRecommendations.profile);
-        setGroupRecommendations(fetchedRecommendations.group);
-        setEventRecommendations(fetchedRecommendations.event);
+        setProfileRecommendations(fetchedRecommendations.profile as ApiRecommendation[]);
+        setGroupRecommendations(fetchedRecommendations.group as ApiRecommendation[]);
+        setEventRecommendations(fetchedRecommendations.event as ApiRecommendation[]);
 
         // --- Adapt API data to old UI state structure ---
         const adaptedConnections: OldConnection[] = fetchedRecommendations.profile.map(p => ({
-          id: p.id,
-          name: p.name || p.title || 'User',
-          title: p.title || 'Professional',
-          avatar: p.avatar_url || null
+          id: (p as any).profile_id || (p as any).id,
+          name: '', // placeholder, will fetch actual name below
+          title: '',
+          avatar: null
         }));
 
+        // Enrich connections with actual profile data from Supabase
+        let enrichedConnections = adaptedConnections;
+        try {
+          const ids = adaptedConnections.map(c => c.id);
+          const { data: profilesData, error: profileErr } = await supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url')
+            .in('id', ids);
+          if (!profileErr && profilesData) {
+            enrichedConnections = adaptedConnections.map(c => {
+              const profile = profilesData.find(p => p.id === c.id);
+              return {
+                ...c,
+                name: profile?.full_name || 'User',
+                avatar: profile?.avatar_url || null
+              };
+            });
+          }
+        } catch (metaErr) {
+          console.error('[Dashboard Recs] Error fetching profile metadata:', metaErr);
+        }
+
         const adaptedGroups: OldGroup[] = fetchedRecommendations.group.map(g => ({
-          id: g.id,
-          name: g.name || 'Group',
-          members: g.members || 0, // Assuming API provides members count
-          category: g.category || 'General' // Assuming API provides category
+          id: (g as any).group_id || (g as any).id,
+          name: (g as any).name || 'Group',
+          members: (g as any).members || 0,
+          category: (g as any).category || 'General'
         }));
 
         const adaptedEvents: OldEvent[] = fetchedRecommendations.event.map(e => ({
-          id: e.id,
-          name: e.title || 'Event',
-          date: e.date || new Date().toISOString(), // Assuming API provides date
-          location: e.location || 'TBD' // Assuming API provides location
+          id: (e as any).event_id || (e as any).id,
+          name: (e as any).title || 'Event',
+          date: (e as any).date || new Date().toISOString(),
+          location: (e as any).location || 'TBD'
         }));
         // --- End Adaptation ---
 
+        // Enrich groups with actual group metadata from Supabase
+        let enrichedGroups = adaptedGroups;
+        try {
+          const groupIds = adaptedGroups.map(g => g.id);
+          const { data: groupsData, error: groupsErr } = await supabase
+            .from('groups')
+            .select('id, name')
+            .in('id', groupIds);
+          if (!groupsErr && groupsData) {
+            enrichedGroups = adaptedGroups.map(g => {
+              const grp = groupsData.find(d => d.id === g.id);
+              return { ...g, name: grp?.name || g.name };
+            });
+          }
+        } catch (grpErr) {
+          console.error('[Dashboard Recs] Error fetching group metadata:', grpErr);
+        }
+
+        // Enrich events with actual event metadata from Supabase
+        let enrichedEvents = adaptedEvents;
+        try {
+          const eventIds = adaptedEvents.map(e => e.id);
+          const { data: eventsData, error: eventsErr } = await supabase
+            .from('events')
+            .select('id, name, date, location')
+            .in('id', eventIds);
+          if (!eventsErr && eventsData) {
+            enrichedEvents = adaptedEvents.map(e => {
+              const ev = eventsData.find(d => d.id === e.id);
+              return {
+                ...e,
+                name: ev?.name || e.name,
+                date: ev?.date || e.date,
+                location: ev?.location || e.location
+              };
+            });
+          }
+        } catch (evtErr) {
+          console.error('[Dashboard Recs] Error fetching event metadata:', evtErr);
+        }
+        
         // Fetch skills separately for now (or integrate into API later)
         let skillRecs: string[] = [];
         try {
@@ -266,12 +369,24 @@ export default function DashboardPage() {
             console.error("[Dashboard Recs] Error fetching skills:", skillErr);
         }
 
-        // Set the UI-compatible state
+        // If no recommendations from API, use demo fallback data
+        const fallbackConnections: OldConnection[] = [
+          { id: 'demo1', name: 'Jane Doe', title: 'Software Engineer', avatar: '/placeholder-avatar.png' },
+          { id: 'demo2', name: 'John Smith', title: 'Product Manager', avatar: '/placeholder-avatar.png' }
+        ];
+        const fallbackGroups: OldGroup[] = [
+          { id: 'group1', name: 'Tech Innovators', members: 1200, category: 'Technology' },
+          { id: 'group2', name: 'Design Enthusiasts', members: 800, category: 'Design' }
+        ];
+        const fallbackEvents: OldEvent[] = [
+          { id: 'event1', name: 'AI Summit 2025', date: new Date().toISOString(), location: 'Virtual' },
+          { id: 'event2', name: 'Startup Pitch Night', date: new Date().toISOString(), location: 'New York' }
+        ];
         setUiRecommendations({
-          connections: adaptedConnections,
-          groups: adaptedGroups,
-          events: adaptedEvents,
-          skills: skillRecs // Keep using fetched skills
+          connections: enrichedConnections.length > 0 ? enrichedConnections : fallbackConnections,
+          groups: enrichedGroups.length > 0 ? enrichedGroups : fallbackGroups,
+          events: enrichedEvents.length > 0 ? enrichedEvents : fallbackEvents,
+          skills: skillRecs.length > 0 ? skillRecs : ['Networking', 'Leadership', 'Innovation']
         });
         
       } catch (err) {
@@ -648,10 +763,43 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="container mx-auto">
-      <div className="mt-6">
-         {renderDashboardContent()}
-      </div>
-    </div>
+    <>
+      <section className="section container mx-auto space-y-6">
+        {/* What are you looking for right now? */}
+        <div className="card-frosted">
+          <h3 className="text-xl font-semibold mb-4">What are you looking for right now?</h3>
+          <textarea
+            rows={3}
+            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            placeholder="Describe what you're looking for right now..."
+            value={helpQuestion}
+            onChange={(e) => setHelpQuestion(e.target.value)}
+          />
+          <button
+            onClick={handleUpdateProfile}
+            disabled={isUpdating}
+            className="mt-4 button-primary"
+          >
+            {isUpdating ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+
+        {/* Trending Events */}
+        <div className="card-frosted">
+          <TrendingEvents events={eventRecommendations.map(evt => ({ id: evt.id, name: evt.title || evt.name || '', date: evt.date || '', location: evt.location || '' }))} />
+        </div>
+
+        {/* Just For You: Recommended Connections, Groups & Events */}
+        <div className="card-frosted">
+          <Recommendations
+            loading={recommendationLoading}
+            connections={uiRecommendations.connections.map(c => ({ id: c.id, name: c.name, avatar_url: c.avatar ?? undefined }))}
+            groups={uiRecommendations.groups.map(g => ({ id: g.id, name: g.name }))}
+            events={uiRecommendations.events.map(e => ({ id: e.id, title: e.name }))}
+          />
+        </div>
+      </section>
+      {renderDashboardContent()}
+    </>
   );
 } 
