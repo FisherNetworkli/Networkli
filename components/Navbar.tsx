@@ -6,11 +6,13 @@ import { motion } from 'framer-motion'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import Logo from './Logo'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { usePathname } from 'next/navigation'
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const supabase = createClientComponentClient()
+  const pathname = usePathname()
 
   useEffect(() => {
     const checkUserSession = async () => {
@@ -21,7 +23,9 @@ export default function Navbar() {
     checkUserSession()
   }, [supabase])
 
-  if (isLoggedIn) return null
+  if (isLoggedIn && pathname?.startsWith('/dashboard')) {
+    return null
+  }
 
   const handleLinkClick = () => {
     setIsMobileMenuOpen(false)

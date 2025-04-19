@@ -140,7 +140,7 @@ export default async function RootLayout({
       <body className="min-h-screen bg-gradient-to-b from-white via-white to-connection-blue-40/10 font-sans text-gray-900">
         <Providers>
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-networkli-orange-40/10 to-connection-blue-40/10 opacity-50" />
+            <div className="absolute inset-0 bg-gradient-to-r from-networkli-orange-40/10 to-connection-blue-40/10 opacity-50 -z-10" />
             <Navbar />
             <main className="relative flex min-h-screen flex-col">
               {children}
