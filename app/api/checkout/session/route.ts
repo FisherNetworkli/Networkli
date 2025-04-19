@@ -9,15 +9,10 @@ export async function POST(req: NextRequest) {
 
   try {
     const { eventId } = await req.json();
-    // Fetch event with price and organizer Stripe account
+    // Fetch event basics including organizer_id
     const { data: eventData, error: eventErr } = await supabase
       .from('events')
-      .select(`
-        id,
-        title,
-        price,
-        organizer:organizer_id(stripe_account_id)
-      `)
+      .select('id, title, price, organizer_id')
       .eq('id', eventId)
       .single();
     if (eventErr || !eventData) {
@@ -26,13 +21,19 @@ export async function POST(req: NextRequest) {
 
     const priceCents = eventData.price || 0;
     const title = eventData.title;
-    const stripeAccount = eventData.organizer?.stripe_account_id;
-    if (!stripeAccount) {
+    // Manually fetch organizer's Stripe account from profiles
+    const { data: organizerData, error: orgErr } = await supabase
+      .from('profiles')
+      .select('stripe_account_id')
+      .eq('id', eventData.organizer_id)
+      .single();
+    if (orgErr || !organizerData) {
       return NextResponse.json(
         { error: 'Organizer Stripe account not configured' },
         { status: 400 }
       );
     }
+    const stripeAccount = (organizerData as any).stripe_account_id as string;
 
     // Get current user for metadata
     const {
@@ -40,6 +41,10 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
     const userId = user?.id;
     const customerEmail = user?.email;
+
+    // Prepare metadata for Stripe session
+    const metadataForStripe: { [key: string]: string } = { eventId };
+    if (userId) metadataForStripe.userId = userId;
 
     // Calculate application fee (10% commission)
     const applicationFee = Math.round(priceCents * 0.1);
@@ -65,8 +70,8 @@ export async function POST(req: NextRequest) {
       },
       success_url: `${baseUrl}/events/${eventId}?success=1`,
       cancel_url: `${baseUrl}/events/${eventId}?canceled=1`,
-      customer_email: customerEmail || undefined,
-      metadata: { eventId, userId }
+      customer_email: customerEmail,
+      metadata: metadataForStripe
     });
 
     return NextResponse.json({ url: session.url });
