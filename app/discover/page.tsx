@@ -113,7 +113,7 @@ export default function DiscoverPage() {
           .from('events')
           .select(`
             *,
-            attendee_count:event_attendance(count)
+            attendee_count:event_attendees(count)
           `)
           .order('start_time', { ascending: true })
           .gte('start_time', new Date().toISOString())
@@ -304,7 +304,7 @@ export default function DiscoverPage() {
           
           {!loadingGroups && filteredGroups.length > 0 && (
             <div className="mt-8 text-center">
-              <Link href="/groups">
+              <Link href="/discover?tab=groups">
                 <Button variant="outline">View All Groups</Button>
               </Link>
             </div>

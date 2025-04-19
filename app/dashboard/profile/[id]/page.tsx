@@ -403,7 +403,7 @@ export default function ProfileViewPage({ params }: { params: { id: string } }) 
                              <Sparkles className="h-4 w-4 text-gray-500"/>
                            </div>
                           <div>
-                            <Link href={`#group-${rec.id}`} className="font-medium text-gray-800 hover:text-purple-600">
+                            <Link href={`/groups/${rec.id}`} className="font-medium text-gray-800 hover:text-purple-600">
                               {rec.name || 'View Group'}
                             </Link>
                             {rec.reason && <p className="text-xs text-gray-500 italic">{rec.reason}</p>}
@@ -431,7 +431,7 @@ export default function ProfileViewPage({ params }: { params: { id: string } }) 
                              <Tv className="h-4 w-4 text-gray-500"/>
                            </div>
                           <div>
-                             <Link href={`#event-${rec.id}`} className="font-medium text-gray-800 hover:text-pink-600">
+                             <Link href={`/events/${rec.id}`} className="font-medium text-gray-800 hover:text-pink-600">
                               {rec.title || 'View Event'}
                             </Link>
                             {rec.reason && <p className="text-xs text-gray-500 italic">{rec.reason}</p>}

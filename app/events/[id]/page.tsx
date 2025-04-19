@@ -24,6 +24,25 @@ import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import PeopleCarousel from '@/app/dashboard/components/PeopleCarousel';
+
+// Demo fallback data for event detail pre-launch
+type DemoEvent = {
+  id: string;
+  title: string;
+  description: string;
+  start_time: string;
+  location: string;
+  image_url?: string;
+  format: string;
+};
+const demoEvents: DemoEvent[] = [
+  { id: '1', title: 'React Summit 2024', description: "Join the world's largest React community for two days of talks, workshops, and networking with top React core team members.", start_time: '2024-08-15T09:00:00.000Z', location: 'San Francisco, CA', image_url: 'https://images.unsplash.com/photo-1531058020387-3be344556be6?ixlib=rb-4.0.3', format: 'Conference' },
+  { id: '2', title: 'AI & ML Hands‑On Workshop', description: "A full‑day coding workshop where you'll build and deploy a simple ML model using TensorFlow.js and Next.js.", start_time: '2024-07-20T13:30:00.000Z', location: 'New York, NY', image_url: 'https://images.unsplash.com/photo-1518779578993-ec3579fee39f?ixlib=rb-4.0.3', format: 'Workshop' },
+  { id: '3', title: 'Startup Pitch Night', description: 'Pitch your startup to a panel of angel investors and get live feedback in a fast‑paced, demo‑style event.', start_time: '2024-09-05T19:00:00.000Z', location: 'Austin, TX', image_url: 'https://images.unsplash.com/photo-1551829145-eb2a4bb9d85b?ixlib=rb-4.0.3', format: 'Networking' },
+  { id: '4', title: 'Women in Tech Meetup', description: 'An evening meetup to connect, mentor, and celebrate the achievements of women working in technology.', start_time: '2024-07-10T17:00:00.000Z', location: 'Seattle, WA', image_url: 'https://images.unsplash.com/photo-1589571894960-20bbe2828b12?ixlib=rb-4.0.3', format: 'Meetup' },
+  { id: '5', title: 'Remote Work Best Practices Webinar', description: 'A live webinar covering productivity hacks, tools, and routines that help remote teams thrive.', start_time: '2024-07-25T12:00:00.000Z', location: 'Online', image_url: 'https://images.unsplash.com/photo-1588702547923-7093a6c3ba33?ixlib=rb-4.0.3', format: 'Webinar' },
+];
 
 interface EventData {
   id: string;
@@ -54,6 +73,7 @@ interface EventData {
     id: string;
     name: string;
   };
+  price?: number;
 }
 
 interface Attendee {
@@ -78,8 +98,15 @@ export default function EventDetailPage() {
   const [user, setUser] = useState<any>(null);
   const [userAttendeeData, setUserAttendeeData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('details');
+  const [loadingCheckout, setLoadingCheckout] = useState(false);
   
   const supabase = createClientComponentClient();
+  
+  // Prepare carousel connections from attendees
+  const connections = attendees.map(a => {
+    const [first_name, ...rest] = a.full_name.split(' ');
+    return { id: a.id, first_name, last_name: rest.join(' '), avatar_url: a.avatar_url || '', title: a.title || '' };
+  });
   
   useEffect(() => {
     const fetchUser = async () => {
@@ -97,18 +124,66 @@ export default function EventDetailPage() {
       try {
         setIsLoading(true);
         
-        // Fetch event details
+        // Demo fallback before querying Supabase (pre-launch)
+        const demo = demoEvents.find(e => e.id === eventId);
+        if (demo) {
+          setEvent({
+            id: demo.id,
+            title: demo.title,
+            description: demo.description,
+            start_time: demo.start_time,
+            end_time: demo.start_time,
+            location: demo.location,
+            address: demo.location,
+            is_virtual: false,
+            image_url: demo.image_url,
+            category: demo.format,
+            format: demo.format,
+            created_at: demo.start_time,
+            organizer_id: '',
+            attendee_count: 0,
+            tags: [],
+            is_private: false,
+          });
+          setAttendees([]);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Fetch event details (simple select)
         const { data: eventData, error: eventError } = await supabase
           .from('events')
-          .select(`
-            *,
-            organizer:organizer_id(id, full_name, avatar_url),
-            group:group_id(id, name)
-          `)
+          .select('*')
           .eq('id', eventId)
           .single();
         
         if (eventError) throw eventError;
+        
+        // Manually fetch related organizer
+        let organizer = null;
+        if (eventData.organizer_id) {
+          const { data: organizerData, error: orgError } = await supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url, stripe_account_id')
+            .eq('id', eventData.organizer_id)
+            .single();
+          if (orgError) throw orgError;
+          organizer = organizerData;
+        }
+        // Manually fetch related group
+        let group = null;
+        if (eventData.group_id) {
+          const { data: groupData, error: grpError } = await supabase
+            .from('groups')
+            .select('id, name')
+            .eq('id', eventData.group_id)
+            .single();
+          if (grpError) throw grpError;
+          group = groupData;
+        }
+        // Attach to eventData object
+        eventData.organizer = organizer;
+        eventData.group = group;
         
         // Fetch attendees
         const { data: attendeesData, error: attendeesError } = await supabase
@@ -172,7 +247,7 @@ export default function EventDetailPage() {
   
   const handleRsvp = async (status: 'attending' | 'interested' | 'not_attending') => {
     if (!user?.id) {
-      router.push('/login?redirect=' + encodeURIComponent(`/events/${eventId}`));
+      router.push('/signup?redirect=' + encodeURIComponent(`/events/${eventId}`));
       return;
     }
     
@@ -229,6 +304,23 @@ export default function EventDetailPage() {
       navigator.clipboard.writeText(window.location.href);
       // Show some feedback (would implement a toast notification in a real app)
       alert('Event link copied to clipboard!');
+    }
+  };
+  
+  // Create Stripe checkout session
+  const handlePurchase = async () => {
+    try {
+      setLoadingCheckout(true);
+      const res = await fetch('/api/checkout/session', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ eventId })
+      });
+      const { url } = await res.json();
+      window.location.href = url;
+    } catch (err) {
+      console.error('Checkout error', err);
+      setLoadingCheckout(false);
     }
   };
   
@@ -316,6 +408,24 @@ export default function EventDetailPage() {
     );
   }
 
+  // Private event gating: only organizers or attendees can view details
+  if (event.is_private && !(user?.id === event.organizer_id || isAttending)) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-8 text-center">
+        <h1 className="text-2xl font-bold mb-4">This event is private</h1>
+        <p className="mb-6">Please sign in or request access to view event details.</p>
+        <div className="flex justify-center gap-4">
+          <Button asChild>
+            <Link href="/signin">Sign In</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/signup">Sign Up</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   // Check if event is past
   const isPastEvent = new Date(event.end_time || event.start_time) < new Date();
 
@@ -399,32 +509,25 @@ export default function EventDetailPage() {
               <Badge variant="outline" className="text-muted-foreground px-3 py-1">
                 Past Event
               </Badge>
-            ) : isAttending ? (
-              <>
-                <Button variant="outline" onClick={handleShareEvent}>
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share
-                </Button>
-                <Button variant="outline" className="bg-green-50">
-                  <Check className="h-4 w-4 mr-2 text-green-600" />
-                  <span className="text-green-600">Attending</span>
-                </Button>
-              </>
             ) : (
               <>
-                <Button 
-                  onClick={() => handleRsvp('attending')} 
-                  disabled={isRsvping}
-                >
-                  {isRsvping ? (
-                    <>Processing...</>
-                  ) : (
-                    <>
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Attend
-                    </>
-                  )}
-                </Button>
+                {/* CTA: Register or Attend */}
+                {!user ? (
+                  <Button asChild>
+                    <Link href={`/signup?redirect=${encodeURIComponent(`/events/${event.id}`)}`}>
+                      Register for Event
+                    </Link>
+                  </Button>
+                ) : !isAttending ? (
+                  <Button onClick={() => handleRsvp('attending')} disabled={isRsvping}>
+                    {isRsvping ? 'Processing...' : 'Attend Event'}
+                  </Button>
+                ) : (
+                  <Badge variant="outline" className="bg-green-50 text-green-600 px-3 py-1">
+                    Attending
+                  </Badge>
+                )}
+                {/* Always offer share */}
                 <Button variant="outline" onClick={handleShareEvent}>
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
@@ -484,101 +587,91 @@ export default function EventDetailPage() {
               </Card>
               
               {isAttending && !isPastEvent && (
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-semibold">Connect with attendees</h2>
-                      <Button variant="ghost" size="sm" className="text-primary" asChild>
-                        <Link href={`/events/${eventId}/alignment`}>
-                          View all
-                          <ChevronRight className="h-4 w-4 ml-1" />
-                        </Link>
-                      </Button>
-                    </div>
-                    <p className="text-muted-foreground mb-4">
-                      Meet other attendees who match your professional background and interests.
-                    </p>
-                    
-                    {/* Placeholder for aligned members preview */}
-                    <div className="bg-muted/30 rounded-lg p-6 text-center">
-                      <Users className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
-                      <h3 className="font-medium">Discover aligned attendees</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Find attendees with similar skills and interests
-                      </p>
+                <>
+                  <PeopleCarousel connections={connections} />
+                  <Card>
+                    <CardContent className="pt-6 text-center">
                       <Button asChild>
-                        <Link href={`/events/${eventId}/alignment`}>
-                          View Aligned Attendees
-                        </Link>
+                        <Link href={`/events/${eventId}/alignment`}>View All Aligned Attendees</Link>
                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </>
               )}
             </TabsContent>
             
             <TabsContent value="attendees">
-              <Card>
-                <CardContent className="pt-6">
-                  <h2 className="text-xl font-semibold mb-6">People attending</h2>
-                  
-                  {attendees.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {attendees.map((attendee) => (
-                        <div key={attendee.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50">
-                          <Avatar className="h-10 w-10 border">
-                            {attendee.avatar_url ? (
-                              <Image
-                                src={attendee.avatar_url}
-                                alt={attendee.full_name}
-                                fill
-                                className="object-cover"
-                              />
-                            ) : (
-                              <div className="h-full w-full bg-muted flex items-center justify-center">
-                                <span className="text-sm font-medium">
-                                  {attendee.full_name.charAt(0)}
-                                </span>
-                              </div>
-                            )}
-                          </Avatar>
-                          <div className="min-w-0">
-                            <Link
-                              href={`/profile/${attendee.id}`}
-                              className="font-medium hover:underline truncate block"
-                            >
-                              {attendee.full_name}
-                            </Link>
-                            {attendee.title && (
-                              <p className="text-xs text-muted-foreground truncate">
-                                {attendee.title}
-                              </p>
+              {user ? (
+                <Card>
+                  <CardContent className="pt-6">
+                    <h2 className="text-xl font-semibold mb-6">People attending</h2>
+                    {attendees.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {attendees.map((attendee) => (
+                          <div key={attendee.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50">
+                            <Avatar className="h-10 w-10 border">
+                              {attendee.avatar_url ? (
+                                <Image
+                                  src={attendee.avatar_url}
+                                  alt={attendee.full_name}
+                                  fill
+                                  className="object-cover"
+                                />
+                              ) : (
+                                <div className="h-full w-full bg-muted flex items-center justify-center">
+                                  <span className="text-sm font-medium">
+                                    {attendee.full_name.charAt(0)}
+                                  </span>
+                                </div>
+                              )}
+                            </Avatar>
+                            <div className="min-w-0">
+                              <Link
+                                href={`/profile/${attendee.id}`}
+                                className="font-medium hover:underline truncate block"
+                              >
+                                {attendee.full_name}
+                              </Link>
+                              {attendee.title && (
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {attendee.title}
+                                </p>
+                              )}
+                            </div>
+                            {attendee.is_organizer && (
+                              <Badge variant="outline" className="ml-auto text-xs">
+                                Organizer
+                              </Badge>
                             )}
                           </div>
-                          {attendee.is_organizer && (
-                            <Badge variant="outline" className="ml-auto text-xs">
-                              Organizer
-                            </Badge>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <Users className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-                      <h3 className="text-lg font-medium mb-2">No attendees yet</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Be the first to attend this event
-                      </p>
-                      {!isAttending && !isPastEvent && (
-                        <Button onClick={() => handleRsvp('attending')} disabled={isRsvping}>
-                          {isRsvping ? 'Processing...' : 'Attend Event'}
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Users className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+                        <h3 className="text-lg font-medium mb-2">No attendees yet</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Be the first to attend this event
+                        </p>
+                        {!isAttending && !isPastEvent && (
+                          <Button onClick={() => handleRsvp('attending')} disabled={isRsvping}>
+                            {isRsvping ? 'Processing...' : 'Attend Event'}
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="pt-6 text-center">
+                    <p className="text-lg font-medium mb-4">Sign up to view attendees</p>
+                    <Button asChild>
+                      <Link href={`/signup?redirect=${encodeURIComponent(`/events/${eventId}`)}`}>Sign Up</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
             
             <TabsContent value="discussions">

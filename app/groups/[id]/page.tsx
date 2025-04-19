@@ -64,6 +64,7 @@ export default function GroupDetailPage() {
   const [isJoining, setIsJoining] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('about');
+  const [groupEvents, setGroupEvents] = useState<any[]>([]);
   
   const supabase = createClientComponentClient();
   
@@ -152,6 +153,19 @@ export default function GroupDetailPage() {
     };
     
     fetchGroupData();
+    
+    // fetch events for this group
+    const fetchGroupEvents = async () => {
+      if (!groupId) return;
+      const { data, error } = await supabase
+        .from('events')
+        .select('id,title,start_time', { count: 'exact' })
+        .eq('group_id', groupId)
+        .order('start_time', { ascending: true });
+      if (error) console.error('Error loading group events:', error);
+      else setGroupEvents(data || []);
+    };
+    fetchGroupEvents();
   }, [groupId, supabase, user?.id]);
   
   const handleJoinGroup = async () => {
@@ -286,6 +300,12 @@ export default function GroupDetailPage() {
           </div>
           
           <div className="flex flex-wrap gap-3">
+            {/* Organizer can create a new event linked to this group */}
+            {user?.id === group.organizer_id && (
+              <Button asChild>
+                <Link href={`/events/create?groupId=${groupId}`}>Create Event</Link>
+              </Button>
+            )}
             {isMember ? (
               <Button variant="outline" onClick={handleShareGroup}>
                 <Share2 className="h-4 w-4 mr-2" />
@@ -408,19 +428,21 @@ export default function GroupDetailPage() {
             
             <TabsContent value="events">
               <Card>
-                <CardContent className="pt-6">
-                  <h2 className="text-xl font-semibold mb-4">Upcoming Events</h2>
-                  
-                  <div className="bg-muted/30 rounded-lg p-6 text-center">
-                    <Calendar className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
-                    <h3 className="font-medium">No upcoming events</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Stay tuned for future events from this group
-                    </p>
-                    {group.organizer?.id === user?.id && (
-                      <Button>Create Event</Button>
-                    )}
-                  </div>
+                <CardContent>
+                  <h2 className="text-xl font-semibold mb-4">Group Events</h2>
+                  {groupEvents.length > 0 ? (
+                    <ul className="space-y-2">
+                      {groupEvents.map(evt => (
+                        <li key={evt.id}>
+                          <Link href={`/events/${evt.id}`} className="text-primary hover:underline">
+                            {evt.title} — {new Date(evt.start_time).toLocaleDateString()}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No events have been created for this group yet.</p>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

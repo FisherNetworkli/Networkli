@@ -22,6 +22,12 @@ const nextConfig = {
         port: '',
         pathname: '/storage/v1/object/sign/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
   // Enable SWC minification for faster builds

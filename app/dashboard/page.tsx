@@ -487,8 +487,7 @@ export default function DashboardPage() {
                            <Sparkles className="h-4 w-4 text-gray-500"/>
                          </div>
                         <div>
-                          {/* TODO: Update href to actual group page */}
-                          <Link href={`#group-${rec.id}`} className="font-medium text-gray-800 hover:text-purple-600">
+                          <Link href={`/groups/${rec.id}`} className="font-medium text-gray-800 hover:text-purple-600">
                              {rec.name || 'View Group'}
                           </Link>
                           {rec.reason && <p className="text-xs text-gray-500 italic">({rec.reason})</p>}
@@ -515,8 +514,7 @@ export default function DashboardPage() {
                            <Tv className="h-4 w-4 text-gray-500"/>
                          </div>
                         <div>
-                           {/* TODO: Update href to actual event page */}
-                           <Link href={`#event-${rec.id}`} className="font-medium text-gray-800 hover:text-pink-600">
+                           <Link href={`/events/${rec.id}`} className="font-medium text-gray-800 hover:text-pink-600">
                              {rec.title || 'View Event'}
                            </Link>
                            {rec.reason && <p className="text-xs text-gray-500 italic">({rec.reason})</p>}
@@ -690,14 +688,14 @@ export default function DashboardPage() {
                    {groupRecommendations.length > 0 && (
                      <Card>
                        <CardHeader><CardTitle className="text-lg flex items-center"><Lightbulb className="h-5 w-5 mr-2 text-purple-600"/> Recommended Groups</CardTitle></CardHeader>
-                       <CardContent><ul className="space-y-3">{groupRecommendations.map(rec => (<li key={rec.id} className="flex items-center space-x-3 text-sm"><div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center"><Sparkles className="h-4 w-4 text-gray-500"/></div><div><Link href={`#group-${rec.id}`} className="font-medium text-gray-800 hover:text-purple-600">{rec.name || 'View Group'}</Link>{rec.reason && <p className="text-xs text-gray-500 italic">({rec.reason})</p>}</div></li>))}</ul></CardContent>
+                       <CardContent><ul className="space-y-3">{groupRecommendations.map(rec => (<li key={rec.id} className="flex items-center space-x-3 text-sm"><div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center"><Sparkles className="h-4 w-4 text-gray-500"/></div><div><Link href={`/groups/${rec.id}`} className="font-medium text-gray-800 hover:text-purple-600">{rec.name || 'View Group'}</Link>{rec.reason && <p className="text-xs text-gray-500 italic">({rec.reason})</p>}</div></li>))}</ul></CardContent>
                      </Card>
                    )}
                     {/* Events Recommendations */} 
                     {eventRecommendations.length > 0 && (
                        <Card>
                           <CardHeader><CardTitle className="text-lg flex items-center"><Calendar className="h-5 w-5 mr-2 text-pink-600"/> Recommended Events</CardTitle></CardHeader>
-                          <CardContent><ul className="space-y-3">{eventRecommendations.map(rec => (<li key={rec.id} className="flex items-center space-x-3 text-sm"><div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center"><Tv className="h-4 w-4 text-gray-500"/></div><div><Link href={`#event-${rec.id}`} className="font-medium text-gray-800 hover:text-pink-600">{rec.title || 'View Event'}</Link>{rec.reason && <p className="text-xs text-gray-500 italic">({rec.reason})</p>}{rec.date && <p className="text-xs text-gray-500">{new Date(rec.date).toLocaleDateString()}</p>}</div></li>))}</ul></CardContent>
+                          <CardContent><ul className="space-y-3">{eventRecommendations.map(rec => (<li key={rec.id} className="flex items-center space-x-3 text-sm"><div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center"><Tv className="h-4 w-4 text-gray-500"/></div><div><Link href={`/events/${rec.id}`} className="font-medium text-gray-800 hover:text-pink-600">{rec.title || 'View Event'}</Link>{rec.reason && <p className="text-xs text-gray-500 italic">({rec.reason})</p>}{rec.date && <p className="text-xs text-gray-500">{new Date(rec.date).toLocaleDateString()}</p>}</div></li>))}</ul></CardContent>
                        </Card>
                     )}
                  </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 interface Event {
   id: string;
@@ -20,6 +21,22 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClientComponentClient();
+  const [role, setRole] = useState<string | null>(null);
+
+  // Fetch current user's role for permission
+  useEffect(() => {
+    const getRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+      setRole(profile?.role || null);
+    };
+    getRole();
+  }, [supabase]);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -143,12 +160,19 @@ export default function EventsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Upcoming Events</h1>
-        <Link
-          href="/discover?tab=events"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
-        >
-          Find Events
-        </Link>
+        <div className="flex space-x-2">
+          <Link
+            href="/discover?tab=events"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
+          >
+            Find Events
+          </Link>
+          {(role === 'organizer' || role === 'admin') && (
+            <Button asChild>
+              <Link href="/events/create">Create Event</Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       {error && (

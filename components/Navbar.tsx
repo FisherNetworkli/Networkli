@@ -54,6 +54,12 @@ export default function Navbar() {
               Features
             </Link>
             <Link 
+              href="/events" 
+              className="text-sm font-medium text-gray-600 hover:text-connection-blue transition-colors"
+            >
+              Events
+            </Link>
+            <Link 
               href="/pricing" 
               className="text-sm font-medium text-gray-600 hover:text-connection-blue transition-colors"
             >
@@ -134,6 +140,13 @@ export default function Navbar() {
               className="block px-4 py-2.5 text-base font-medium text-gray-600 hover:text-connection-blue hover:bg-gray-50 rounded-lg transition-colors"
             >
               Features
+            </Link>
+            <Link 
+              href="/events" 
+              onClick={handleLinkClick}
+              className="block px-4 py-2.5 text-base font-medium text-gray-600 hover:text-connection-blue hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              Events
             </Link>
             <Link 
               href="/pricing" 
